@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 
-const ProgramList = ({ onSelectProgram }) => {
+const ProgramList = ({ onSelectProgram }: { onSelectProgram: any }) => {
   const programs = [
     { id: 1, name: 'Strength Training', color: '#FF6B6B' },
     { id: 2, name: 'Cardio', color: '#4ECDC4' },

@@ -1,13 +1,12 @@
-import { View, useColorScheme } from 'react-native'
+import { View } from 'react-native'
 import React, { useCallback } from 'react'
-import WorkoutList from '../components/WorkoutList'
-import { useTheme } from '../context/ThemeContext'
-import { createThemedStyles } from '../styles/theme'
+import WorkoutList from '../../components/WorkoutList'
+import { useTheme } from '../../context/ThemeContext'
+import { createThemedStyles } from '../../styles/theme'
 import { useNavigation } from '@react-navigation/native'
 
 const Home = () => {
-  const { isDarkMode, toggleTheme } = useTheme();
-  const colorScheme = useColorScheme();
+  const { isDarkMode } = useTheme() || { isDarkMode: false };
   const styles = createThemedStyles(isDarkMode);
   const navigation = useNavigation();
   

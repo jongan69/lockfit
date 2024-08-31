@@ -1,14 +1,15 @@
-import React, { useState, useRef } from 'react'
+import React, { useRef } from 'react'
 import { View, Text, ScrollView } from 'react-native'
-import { useTheme } from '../context/ThemeContext'
-import { createThemedStyles } from '../styles/theme'
+import { useTheme } from '../../context/ThemeContext'
+import { createThemedStyles } from '../../styles/theme'
 import { LineChart } from 'react-native-chart-kit'
-import { useTabBarVisibility } from '../context/TabBarVisibilityContext'
+import { useTabBarVisibility } from '../../context/TabBarVisibilityContext'
 
 const Progress = () => {
-  const { isDarkMode } = useTheme();
+  const theme = useTheme();
+  const isDarkMode = theme?.isDarkMode ?? false;
   const styles = createThemedStyles(isDarkMode);
-  const { setTabBarVisible } = useTabBarVisibility();
+  const { setTabBarVisible } = useTabBarVisibility() ?? {};
   const scrollViewRef = useRef(null);
 
   // Mock data for PR weights and progress
@@ -24,7 +25,7 @@ const Progress = () => {
     .filter(e => ['Squat', 'Bench Press', 'Deadlift'].includes(e.name))
     .reduce((sum, e) => sum + e.pr, 0);
 
-  const renderExerciseCard = (exercise) => (
+  const renderExerciseCard = (exercise: any) => (
     <View key={exercise.name} style={styles.card}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>{exercise.name}</Text>
@@ -56,13 +57,15 @@ const Progress = () => {
     </View>
   );
 
-  const handleScroll = (event) => {
+  const handleScroll = (event: any) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const paddingToBottom = 20;
     const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= 
       contentSize.height - paddingToBottom;
     
-    setTabBarVisible(!isCloseToBottom);
+    if (layoutMeasurement && contentOffset && contentSize && setTabBarVisible) {
+      setTabBarVisible(!isCloseToBottom);
+    }
   };
 
   return (

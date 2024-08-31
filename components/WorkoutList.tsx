@@ -1,16 +1,15 @@
 import React, { useState } from 'react'
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
 import WorkoutTimer from './WorkoutTimer'
 import { useTabBarVisibility } from '../context/TabBarVisibilityContext'
 
-const WorkoutList = ({ workouts }) => {
+const WorkoutList = ({ workouts }: { workouts: any }) => {
     const [selectedWorkout, setSelectedWorkout] = useState(null)
     const [modalVisible, setModalVisible] = useState(false)
     const [timerVisible, setTimerVisible] = useState(false)
-    const { setTabBarVisible } = useTabBarVisibility();
+    const { setTabBarVisible } = useTabBarVisibility() || { setTabBarVisible: () => {} };
 
-    const handleWorkoutPress = (workout) => {
+    const handleWorkoutPress = (workout: any) => {
         setSelectedWorkout(workout)
         setModalVisible(true)
     }
@@ -29,7 +28,7 @@ const WorkoutList = ({ workouts }) => {
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            {workouts.map((workout, index) => (
+            {workouts.map((workout: { name: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; sets: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; reps: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; weight: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined }, index: React.Key | null | undefined) => (
                 <TouchableOpacity key={index} style={styles.workoutCard} onPress={() => handleWorkoutPress(workout)}>
                     <Text style={styles.workoutName}>{workout.name}</Text>
                     <Text style={styles.workoutDetails}>Sets: {workout.sets} x Reps: {workout.reps}</Text>
@@ -45,7 +44,7 @@ const WorkoutList = ({ workouts }) => {
             >
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        <Text style={styles.modalText}>Start {selectedWorkout?.name} workout?</Text>
+                        <Text style={styles.modalText}>Start {selectedWorkout?.name ?? 'selected'} workout?</Text>
                         <TouchableOpacity style={styles.button} onPress={startWorkout}>
                             <Text style={styles.buttonText}>Start Workout</Text>
                         </TouchableOpacity>

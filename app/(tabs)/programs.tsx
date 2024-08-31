@@ -1,16 +1,14 @@
 import { View, useColorScheme } from 'react-native'
 import React from 'react'
-import ColorList from '../components/ColorList'
-import { useTheme } from '../context/ThemeContext'
-import { createThemedStyles } from '../styles/theme'
-import ProgramList from '../components/ProgramList'
+import { useTheme } from '../../context/ThemeContext'
+import { createThemedStyles } from '../../styles/theme'
+import ProgramList from '../../components/ProgramList'
 
 const Programs = () => {
-  const { isDarkMode, toggleTheme } = useTheme();
-  const colorScheme = useColorScheme();
+  const { isDarkMode } = useTheme() || { isDarkMode: false };
   const styles = createThemedStyles(isDarkMode);
 
-  const handleSelectProgram = (program) => {
+  const handleSelectProgram = (program: any) => {
     // Handle program selection here
     console.log('Selected program:', program);
   };
