@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
+import { Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 
 const ProgramList = ({ onSelectProgram }: { onSelectProgram: any }) => {

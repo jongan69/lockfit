@@ -1,4 +1,4 @@
-import { View, useColorScheme } from 'react-native'
+import { View } from 'react-native'
 import React from 'react'
 import { useTheme } from '../../context/ThemeContext'
 import { createThemedStyles } from '../../styles/theme'

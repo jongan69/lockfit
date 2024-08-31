@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 import * as Linking from "expo-linking";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
@@ -8,8 +8,10 @@ import { Buffer } from "buffer";
 import Toast from "react-native-toast-message";
 import { useTheme } from "@/context/ThemeContext";
 import { createThemedStyles } from "@/styles/theme";
-
-global.Buffer = global.Buffer || Buffer;
+import { useDispatch } from 'react-redux';
+import { setPublicKey } from '../store/slices/users';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 
 const NETWORK = clusterApiUrl("mainnet-beta");
 const useUniversalLinks = false;
@@ -21,6 +23,9 @@ const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) =>
   const theme = useTheme();
   const isDarkMode = theme?.isDarkMode;
   const styles = createThemedStyles(isDarkMode ?? false);
+  // In your sign-in component
+  const dispatch = useDispatch();
+  const publicKey = useSelector((state: RootState) => state.user.publicKey);
   const [deepLink, setDeepLink] = useState<string>("");
   const [sharedSecret, setSharedSecret] = useState<Uint8Array | undefined>();
   const [session, setSession] = useState<string | undefined>();
@@ -68,10 +73,11 @@ const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) =>
         setPhantomWalletPublicKey(new PublicKey(connectData.public_key));
 
         onConnect(connectData.public_key);
+        dispatch(setPublicKey(connectData.public_key));
         Toast.show({
           type: "success",
           text1: "Login Successful",
-          text2: phantomWalletPublicKey?.toString(),
+          text2: publicKey ?? "",
         });
       } else {
         Toast.show({
@@ -81,14 +87,10 @@ const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) =>
         });
       }
     } catch (error) {
-      console.error("Error:", error);
-      if (error instanceof Error) {
-        onError(error.message);
-      } else {
-        onError("An unknown error occurred");
-      }
+      // console.error("Error:", error);
+      onError(error instanceof Error ? error.message : String(error));
     }
-  }, [deepLink]);
+  }, [deepLink, dispatch, publicKey, dappKeyPair.secretKey,onConnect, onError]);
 
   const decryptPayload = (data: string, nonce: string, sharedSecret?: Uint8Array) => {
     if (!sharedSecret) throw new Error("missing shared secret");

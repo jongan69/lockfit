@@ -3,13 +3,28 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'rea
 import WorkoutTimer from './WorkoutTimer'
 import { useTabBarVisibility } from '../context/TabBarVisibilityContext'
 
-const WorkoutList = ({ workouts }: { workouts: any }) => {
-    const [selectedWorkout, setSelectedWorkout] = useState(null)
+interface Workout {
+    name: string;
+    sets: number;
+    reps: number;
+    weight: number;
+    duration: number;
+    restDuration: number;
+}
+
+interface WorkoutListProps {
+    workouts: Workout[];
+    onWorkoutStart: () => void;
+    onWorkoutComplete: () => void;
+}
+
+const WorkoutList: React.FC<WorkoutListProps> = ({ workouts, onWorkoutStart, onWorkoutComplete }) => {
+    const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null)
     const [modalVisible, setModalVisible] = useState(false)
     const [timerVisible, setTimerVisible] = useState(false)
     const { setTabBarVisible } = useTabBarVisibility() || { setTabBarVisible: () => {} };
 
-    const handleWorkoutPress = (workout: any) => {
+    const handleWorkoutPress = (workout: Workout) => {
         setSelectedWorkout(workout)
         setModalVisible(true)
     }
@@ -28,7 +43,7 @@ const WorkoutList = ({ workouts }: { workouts: any }) => {
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            {workouts.map((workout: { name: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; sets: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; reps: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; weight: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined }, index: React.Key | null | undefined) => (
+            {workouts.map((workout, index) => (
                 <TouchableOpacity key={index} style={styles.workoutCard} onPress={() => handleWorkoutPress(workout)}>
                     <Text style={styles.workoutName}>{workout.name}</Text>
                     <Text style={styles.workoutDetails}>Sets: {workout.sets} x Reps: {workout.reps}</Text>

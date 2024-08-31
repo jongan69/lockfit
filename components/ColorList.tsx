@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity } from 'react-native'
+import { Text, ScrollView, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useTheme } from '@/context/ThemeContext';
 import { createThemedStyles } from '@/styles/theme';
@@ -17,13 +17,13 @@ const ColorList = ({color, items, publicKey, handleConnect, handleLogout, handle
         <LoginButton onConnect={handleConnect} onError={handleError} />
       )}
       {
-        items.map((item: any)=> (
+        items.map((item: any, index: number)=> (
           <TouchableOpacity
-            key={item.index} 
+            key={index} 
             style={[styles.colorlist, {backgroundColor: color, opacity: item.opacity}]} 
             onPress={item.action}
           >
-              <Text style={styles.cardTitle} key={item.id}>{item.name}</Text>
+              <Text style={styles.cardTitle} key={index}>{item.name}</Text>
           </TouchableOpacity>
         ))
       }

@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, useColorScheme } from 'react-native'
 import ColorList from '../../components/ColorList'
 import { useTheme } from '../../context/ThemeContext'
 import { createThemedStyles } from '../../styles/theme'
-import { LoginButton, LogoutButton } from '../../components/LoginButton'
 import Toast from "react-native-toast-message";
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { useDispatch } from 'react-redux';
+import { setPublicKey } from '@/store/slices/users';
+
 
 const Settings = () => {
   const theme = useTheme();
@@ -12,22 +16,25 @@ const Settings = () => {
   const toggleTheme = theme?.toggleTheme ?? (() => { });
   const colorScheme = useColorScheme();
   const styles = createThemedStyles(isDarkMode ?? false);
-  const [publicKey, setPublicKey] = useState<string | null>(null);
+  // const [publicKey, setPublicKey] = useState<string | null>(null);
+  const dispatch = useDispatch();
+  const publicKey = useSelector((state: RootState) => state.user.publicKey);
 
   const handleConnect = (key: string) => {
-    setPublicKey(key);
+    // setPublicKey(key);
+    dispatch(setPublicKey(key));
   };
 
   const handleLogout = () => {
-    setPublicKey(null);
+    dispatch(setPublicKey(""));
   };
 
   const handleError = (error: any) => {
     console.log(error);
     Toast.show({
       type: "error",
-      text1: `Error Code: ${error.errorCode}`,
-      text2: error.errorMessage,
+      text1: `Error Code: ${JSON.parse(error).errorCode}`,
+      text2: JSON.parse(error).errorMessage,
     });
   };
 
@@ -46,7 +53,6 @@ const Settings = () => {
         <Text style={styles.text}>Connected with PublicKey: {publicKey?.slice(0, 4)}...{publicKey.slice(-4)}</Text>
       )}
       <ColorList color={styles.button.backgroundColor} items={colorListItems} publicKey={publicKey} handleConnect={handleConnect} handleLogout={handleLogout} handleError={handleError} />
-
     </View>
   );
 };
