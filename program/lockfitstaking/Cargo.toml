@@ -1,0 +1,12 @@
+[package]
+name = "lockfitstaking"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "lockfitstaking"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+borsh = "1.5.1"
+solana-program = "2.0.8"
