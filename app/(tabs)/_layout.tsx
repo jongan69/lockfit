@@ -47,6 +47,12 @@ const _layout = () => {
                 }}
             />
             <Tabs.Screen
+                name="rewards"
+                options={{
+                    title: "Rewards"
+                }}
+            /> 
+            <Tabs.Screen
                 name="settings"
                 options={{
                     title: "Settings"

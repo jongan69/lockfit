@@ -84,20 +84,20 @@ export const createThemedStyles = (isDarkMode: boolean) => StyleSheet.create({
     textAlign: 'center',
   },
   workoutCard: {
-    backgroundColor: COLORS.PINK,
-    borderRadius: 10,
-    padding: 15,
-    margin: 15,
-  },
-  workoutDate: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.WHITE,
+    backgroundColor: isDarkMode ? COLORS.DARK_GREY : COLORS.LIGHT_GREY,
+    borderRadius: 8,
+    padding: 10,
     marginBottom: 10,
   },
-  workoutText: {
+  workoutDate: {
     fontSize: 16,
-    color: COLORS.WHITE,
+    fontWeight: 'bold',
+    color: isDarkMode ? COLORS.WHITE : COLORS.GREY,
+    marginBottom: 5,
+  },
+  workoutText: {
+    fontSize: 14,
+    color: isDarkMode ? COLORS.LIGHT_GREY : COLORS.DARK_GREY,
   },
   buttonContainer: {
     alignItems: 'center',
@@ -122,18 +122,113 @@ export const createThemedStyles = (isDarkMode: boolean) => StyleSheet.create({
   },
   colorlist: {
     width: '100%',
-    height: 150,
-    borderRadius: 25,
-    borderCurve: 'continuous', 
-    marginBottom: 15,
+    height: 100,
+    borderRadius: 15,
+    marginBottom: 10,
     alignItems: 'center',
     justifyContent: 'center',
-},
-colorlistcontainer: {
-  paddingHorizontal: 20, 
-  paddingVertical: 10, 
-  height: '100%'
-}
+    padding: 5,
+  },
+  colorlistcontainer: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  // Rewards styles
+  mainContainer: {
+    flex: 1,
+    padding: 20,
+  },
+  header: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  headerText: {
+    fontSize: 28,
+  },
+  rewardsCard: {
+    marginBottom: 0,
+    backgroundColor: isDarkMode ? COLORS.GREY : '#f0f0f0',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  stakeAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: isDarkMode ? COLORS.BLUE : '#4a90e2',
+  },
+  rewardAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: isDarkMode ? COLORS.GREEN : '#50c878',
+  },
+  input: {
+    marginTop: 0,
+    width: '100%',
+    height: 40,
+    borderColor: isDarkMode ? COLORS.LIGHT_GREY : 'gray',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 5,
+    marginBottom: 10,
+  },
+  rewardsButton: {
+    marginTop: 0,
+    backgroundColor: isDarkMode ? COLORS.BLUE : '#4a90e2',
+    padding: 10,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  unstakeButton: {
+    marginTop: '-5%',
+    backgroundColor: isDarkMode ? COLORS.RED : '#e74c3c',
+    padding: 10,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  stakeImage: {
+    width: 100,
+    height: 100,
+    marginTop: 0,
+  },
+  dashboardSection: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: isDarkMode ? COLORS.WHITE : COLORS.GREY,
+    marginBottom: 10,
+  },
+  activityItem: {
+    fontSize: 14,
+    color: isDarkMode ? COLORS.LIGHT_GREY : COLORS.DARK_GREY,
+    marginBottom: 5,
+  },
+  workoutSection: {
+    marginTop: 20,
+  },
+  messageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  messageText: {
+    fontSize: 18,
+    textAlign: 'center',
+    color: isDarkMode ? COLORS.WHITE : COLORS.GREY,
+  },
+  multiplierText: {
+    fontSize: 16,
+    color: isDarkMode ? COLORS.LIGHT_GREY : COLORS.DARK_GREY,
+    marginTop: 5,
+  },
 });
 
 export const getCalendarTheme = (isDarkMode: boolean) => ({

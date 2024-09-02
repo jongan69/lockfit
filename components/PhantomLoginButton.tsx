@@ -3,7 +3,7 @@ import { Text, TouchableOpacity } from "react-native";
 import * as Linking from "expo-linking";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
-import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
+import { clusterApiUrl, Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import Toast from "react-native-toast-message";
 import { useTheme } from "@/context/ThemeContext";
@@ -23,6 +23,7 @@ const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) =>
   const theme = useTheme();
   const isDarkMode = theme?.isDarkMode;
   const styles = createThemedStyles(isDarkMode ?? false);
+  const [submitting, setSubmitting] = useState(false);
   // In your sign-in component
   const dispatch = useDispatch();
   const publicKey = useSelector((state: RootState) => state.user.publicKey);
@@ -113,6 +114,7 @@ const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) =>
     const url = buildUrl("connect", params);
     Linking.openURL(url);
   };
+  
 
   return (
     <TouchableOpacity style={[styles.colorlist, { backgroundColor: styles.button.backgroundColor }]} onPress={connect}>

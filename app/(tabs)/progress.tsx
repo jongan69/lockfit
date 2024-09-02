@@ -1,9 +1,13 @@
 import React, { useRef } from 'react'
 import { View, Text, ScrollView } from 'react-native'
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState } from '../../store'
+import { updateExercisePR } from '../../store/slices/users'
 import { useTheme } from '../../context/ThemeContext'
 import { createThemedStyles } from '../../styles/theme'
 import { LineChart } from 'react-native-chart-kit'
 import { useTabBarVisibility } from '../../context/TabBarVisibilityContext'
+import { handleScroll } from '@/utils/handleScroll'
 
 const Progress = () => {
   const theme = useTheme();
@@ -11,17 +15,11 @@ const Progress = () => {
   const styles = createThemedStyles(isDarkMode);
   const { setTabBarVisible } = useTabBarVisibility() ?? {};
   const scrollViewRef = useRef(null);
+  const dispatch = useDispatch();
 
-  // Mock data for PR weights and progress
-  const exercises = [
-    { name: 'Squat', pr: 225, data: [200, 210, 215, 220, 225] },
-    { name: 'Bench Press', pr: 185, data: [165, 170, 175, 180, 185] },
-    { name: 'Deadlift', pr: 315, data: [280, 290, 300, 310, 315] },
-    { name: 'Overhead Press', pr: 135, data: [115, 120, 125, 130, 135] },
-    { name: 'Barbell Row', pr: 165, data: [145, 150, 155, 160, 165] },
-  ];
+  const exerciseProgress = useSelector((state: RootState) => state.user.exerciseProgress);
 
-  const totalBigThree = exercises
+  const totalBigThree = exerciseProgress
     .filter(e => ['Squat', 'Bench Press', 'Deadlift'].includes(e.name))
     .reduce((sum, e) => sum + e.pr, 0);
 
@@ -57,28 +55,17 @@ const Progress = () => {
     </View>
   );
 
-  const handleScroll = (event: any) => {
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const paddingToBottom = 20;
-    const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= 
-      contentSize.height - paddingToBottom;
-    
-    if (layoutMeasurement && contentOffset && contentSize && setTabBarVisible) {
-      setTabBarVisible(!isCloseToBottom);
-    }
-  };
-
   return (
     <ScrollView 
       style={styles.container}
       ref={scrollViewRef}
-      onScroll={handleScroll}
+      onScroll={(event) => handleScroll(event, setTabBarVisible)}
       scrollEventThrottle={16}
     >
       <View style={styles.totalCard}>
         <Text style={styles.totalTitle}>Total: {totalBigThree} lbs</Text>
       </View>
-      {exercises.map(renderExerciseCard)}
+      {exerciseProgress.map(renderExerciseCard)}
     </ScrollView>
   );
 };

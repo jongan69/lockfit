@@ -2,14 +2,19 @@ import { Text, ScrollView, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useTheme } from '@/context/ThemeContext';
 import { createThemedStyles } from '@/styles/theme';
-import { LoginButton, LogoutButton } from './LoginButton';
+import { LoginButton, LogoutButton } from './PhantomLoginButton';
+import { useTabBarVisibility } from '@/context/TabBarVisibilityContext';
+import { handleScroll } from '@/utils/handleScroll';
 
 const ColorList = ({color, items, publicKey, handleConnect, handleLogout, handleError}: {color: any, items: any, publicKey: any, handleConnect: any, handleLogout: any, handleError: any}) => {
   const theme = useTheme();
   const isDarkMode = theme?.isDarkMode;
   const styles = createThemedStyles(isDarkMode ?? false);
+  const { setTabBarVisible } = useTabBarVisibility() ?? {};
   return (
     <ScrollView 
+      onScroll={(event) => handleScroll(event, setTabBarVisible)}
+      scrollEventThrottle={16}
       contentContainerStyle={styles.colorlistcontainer}>
          {publicKey ? (
         <LogoutButton onLogout={handleLogout} />
@@ -30,20 +35,5 @@ const ColorList = ({color, items, publicKey, handleConnect, handleLogout, handle
     </ScrollView>
   )
 }
-
-// const styles = StyleSheet.create({
-//     color: {
-//         width: '100%',
-//         height: 150,
-//         borderRadius: 25,
-//         borderCurve: 'continuous', 
-//         marginBottom: 15,
-//     },
-//     container: {
-//       paddingHorizontal: 20, 
-//       paddingVertical: 10, 
-//       height: '100%'
-//     }
-// })
 
 export default ColorList;

@@ -13,7 +13,7 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 2. Start the app
 
    ```bash
-    npx expo start
+   npx expo start
    ```
 
 In the output, you'll find options to open the app in a
@@ -33,7 +33,37 @@ When you're ready, run:
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+This command will move the starter code to the **src-example** directory and create a blank **src** directory where you can start developing.
+
+## Deploy the lockfitstaking program
+
+To deploy the `lockfitstaking` program on Solana Devnet, follow these steps:
+
+1. Set the Solana CLI to use the Devnet
+
+   ```bash
+   solana config set --url devnet
+   ```
+
+2. Build the program using Cargo
+
+   ```bash
+   cargo build-sbf
+   ```
+
+3. Request an airdrop of 1 SOL for your wallet
+
+   ```bash
+   solana airdrop 1
+   ```
+
+   Alternatively, you can use the [Solana Faucet](https://faucet.solana.com/) to request an airdrop.
+
+4. Deploy the program
+
+   ```bash
+   solana program deploy ./target/deploy/lockfitstaking.so
+   ```
 
 ## Learn more
 

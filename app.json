@@ -35,6 +35,8 @@
       "typedRoutes": true
     },
     "extra": {
+      "programAddress": "AXcjfnZMSdtM4yFPnrVbpJq7tAURYA4jXA3k9USMnmxc",
+      "rpcUrl": "https://christiane-z5lsaw-fast-mainnet.helius-rpc.com",
       "router": {
         "origin": false
       },

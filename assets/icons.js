@@ -5,5 +5,6 @@ export const icons = {
     programs: (props)=> <Feather name="compass" size={26} {...props} />,
     history: (props)=> <AntDesign name="calendar" size={26} {...props} />,
     progress: (props)=> <AntDesign name="linechart" size={26} {...props} />,
+    rewards: (props)=> <AntDesign name="Trophy" size={26} {...props} />,
     settings: (props)=> <AntDesign name="setting" size={26} {...props} />,
 }
