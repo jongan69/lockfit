@@ -1,80 +1,79 @@
-# Welcome to Lockfit, your Expo workout app 👋
+# Lockfit: Your Expo Workout App with Solana Integration 🏋️‍♂️💪
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Lockfit is a comprehensive workout app built with Expo, featuring Solana blockchain integration for token staking and rewards.
 
-## Get started
+## Features
 
-1. Install dependencies
+- Workout tracking and planning
+- Solana-based token staking and rewards system
+- User authentication and profile management
+- Social features (workout sharing, challenges)
+- Performance analytics and progress tracking
 
+## Tech Stack
+
+- Frontend: React Native with Expo
+- Backend: Node.js
+- Blockchain: Solana (Devnet)
+- Smart Contract: Rust
+
+## Getting Started
+
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+2. Start the app:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## Solana Integration
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Deploy the lockfitstaking program
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **src-example** directory and create a blank **src** directory where you can start developing.
-
-## Deploy the lockfitstaking program
-
-To deploy the `lockfitstaking` program on Solana Devnet, follow these steps:
-
-1. Set the Solana CLI to use the Devnet
-
+1. Set Solana CLI to Devnet:
    ```bash
    solana config set --url devnet
    ```
 
-2. Build the program using Cargo
-
+2. Build the program:
    ```bash
    cargo build-sbf
    ```
 
-3. Request an airdrop of 1 SOL for your wallet
-
+3. Request SOL airdrop:
    ```bash
    solana airdrop 1
    ```
 
-   Alternatively, you can use the [Solana Faucet](https://faucet.solana.com/) to request an airdrop.
-
-4. Deploy the program
-
+4. Deploy the program:
    ```bash
    solana program deploy ./target/deploy/lockfitstaking.so
    ```
 
-## Learn more
+## Current Development Focus
 
-To learn more about developing your project with Expo, look at the following resources:
+- Implementing user authentication flow
+- Designing and building the workout tracking interface
+- Developing the Solana smart contract for token staking
+- Creating the rewards distribution system
+- Optimizing app performance and UI/UX
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Contributing
 
-## Join the community
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-Join our community of developers creating universal apps.
+## Learn More
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Expo Documentation](https://docs.expo.dev/)
+- [Solana Documentation](https://docs.solana.com/)
+
+## Community
+
+Join our [Discord](https://discord.gg/lockfit) for discussions and support.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
