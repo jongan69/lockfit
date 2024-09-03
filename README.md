@@ -61,6 +61,10 @@ Lockfit is a comprehensive workout app built with Expo, featuring Solana blockch
 - Creating the rewards distribution system
 - Optimizing app performance and UI/UX
 
+# DEV Notes
+- App.json is where the env variables are set, React Native uses these to know which network to connect to, which RPC to use, etc.
+- The env variables are set via expo, and can be accessed via `Constants.expoConfig.extra.{variable}`
+
 ## Contributing
 
 We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details.

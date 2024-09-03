@@ -51,45 +51,53 @@ interface UserState {
   saveCustomPrograms: (programs: CustomProgram[]) => void;
 }
 
-export const useUserStore = create<UserState>((set) => ({
-  publicKey: '',
-  isImperial: false,
-  currentBalance: 0,
-  stakedBalance: 0,
-  rewardsBalance: 0,
-  timeStaked: 0,
-  workoutData: [],
-  customPrograms: [],
-  recentActivity: [],
-  exerciseProgress: [],
-  selectedProgram: null,
-  setPublicKey: (key) => set({ publicKey: key }),
-  clearPublicKey: () => set({ publicKey: '' }),
-  toggleUnits: () => set((state) => ({ isImperial: !state.isImperial })),
-  updateBalance: (balance) => set({ currentBalance: balance }),
-  updateStakedBalance: (balance) => set({ stakedBalance: balance }),
-  updateRewardsBalance: (balance) => set({ rewardsBalance: balance }),
-  updateTimeStaked: (time) => set({ timeStaked: time }),
-  setWorkoutData: (data) => set({ workoutData: data }),
-  setCustomPrograms: (programs) => set({ customPrograms: programs }),
-  addRecentActivity: (activity) => set((state) => {
-    const newActivity = [activity, ...state.recentActivity.slice(0, 4)];
-    return { recentActivity: newActivity };
-  }),
-  clearRecentActivity: () => set({ recentActivity: [] }),
-  setExerciseProgress: (progress) => set({ exerciseProgress: progress }),
-  updateExercisePR: (name, pr) => set((state) => ({
-    exerciseProgress: state.exerciseProgress.map((exercise) =>
-      exercise.name === name
-        ? { ...exercise, pr, data: [...exercise.data, pr] }
-        : exercise
-    ),
-  })),
-  setSelectedProgram: (program) => set({ selectedProgram: program }),
-  lastCompletedWeights: {},
-  saveWorkoutHistory: (date, workout) => set((state) => ({
-    workoutHistory: { ...state.workoutHistory, [date]: workout }
-  })),
-  workoutHistory: {},
-  saveCustomPrograms: (programs) => set({ customPrograms: programs }),
-}));
+export const useUserStore = create(
+  persist<UserState>(
+    (set) => ({
+      publicKey: '',
+      isImperial: false,
+      currentBalance: 0,
+      stakedBalance: 0,
+      rewardsBalance: 0,
+      timeStaked: 0,
+      workoutData: [],
+      customPrograms: [],
+      recentActivity: [],
+      exerciseProgress: [],
+      selectedProgram: null,
+      setPublicKey: (key) => set({ publicKey: key }),
+      clearPublicKey: () => set({ publicKey: '' }),
+      toggleUnits: () => set((state) => ({ isImperial: !state.isImperial })),
+      updateBalance: (balance) => set({ currentBalance: balance }),
+      updateStakedBalance: (balance) => set({ stakedBalance: balance }),
+      updateRewardsBalance: (balance) => set({ rewardsBalance: balance }),
+      updateTimeStaked: (time) => set({ timeStaked: time }),
+      setWorkoutData: (data) => set({ workoutData: data }),
+      setCustomPrograms: (programs) => set({ customPrograms: programs }),
+      addRecentActivity: (activity) => set((state) => {
+        const newActivity = [activity, ...state.recentActivity.slice(0, 4)];
+        return { recentActivity: newActivity };
+      }),
+      clearRecentActivity: () => set({ recentActivity: [] }),
+      setExerciseProgress: (progress) => set({ exerciseProgress: progress }),
+      updateExercisePR: (name, pr) => set((state) => ({
+        exerciseProgress: state.exerciseProgress.map((exercise) =>
+          exercise.name === name
+            ? { ...exercise, pr, data: [...exercise.data, pr] }
+            : exercise
+        ),
+      })),
+      setSelectedProgram: (program) => set({ selectedProgram: program }),
+      lastCompletedWeights: {},
+      saveWorkoutHistory: (date, workout) => set((state) => ({
+        workoutHistory: { ...state.workoutHistory, [date]: workout }
+      })),
+      workoutHistory: {},
+      saveCustomPrograms: (programs) => set({ customPrograms: programs }),
+    }),
+    {
+      name: 'user-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);

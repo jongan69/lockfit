@@ -7,17 +7,19 @@ import Toast from "react-native-toast-message";
 import Constants from 'expo-constants';
 import { useUserStore } from '../../stores/UserStore';
 import { useAppStore } from '../../stores/AppStore';
+import { useAuthStore } from '@/stores/AuthStore';
 
 const Settings = () => {
   const { isDarkMode, toggleTheme } = useTheme() || {};
   const colorScheme = useColorScheme();
   const styles = createThemedStyles(isDarkMode ?? false);
 
-  const { publicKey, setPublicKey, isImperial, toggleUnits } = useUserStore();
+  const { isImperial, toggleUnits } = useUserStore();
+  const { getSharedSecretUint8Array, session, getPublicKey, getDappKeyPair, setAuth, setNonce, getNonce } = useAuthStore();
   const { notificationsEnabled, toggleNotifications, language, setLanguage } = useAppStore();
 
-  const handleConnect = (key: string) => setPublicKey(key);
-  const handleLogout = () => setPublicKey("");
+  // const handleConnect = (key: string) => setPublicKey(key);
+  // const handleLogout = () => setPublicKey("");
   const handleError = (error: any) => {
     console.log(error);
     const { errorCode, errorMessage } = JSON.parse(error);
@@ -63,19 +65,19 @@ const Settings = () => {
 
   return (
     <View style={styles.container}>
-      {publicKey && (
+      {getPublicKey() && (
         <>
           <Text style={styles.text}>Staking Program Address: {Constants?.expoConfig?.extra?.programAddress?.slice(0, 4)}...{Constants?.expoConfig?.extra?.programAddress?.slice(-4)}</Text>
-          <Text style={styles.text}>Connected with PublicKey: {publicKey?.slice(0, 4)}...{publicKey.slice(-4)}</Text>
+          <Text style={styles.text}>Connected with PublicKey: {getPublicKey()?.slice(0, 4)}...{getPublicKey()?.slice(-4)}</Text>
         </>
       )}
       <ColorList 
         color={styles.button.backgroundColor} 
         items={colorListItems} 
-        publicKey={publicKey} 
-        handleConnect={handleConnect} 
-        handleLogout={handleLogout} 
-        handleError={handleError} 
+        // publicKey={getPublicKey()} 
+        // handleConnect={handleConnect} 
+        // handleLogout={handleLogout} 
+        // handleError={handleError} 
       />
     </View>
   );

@@ -25,3 +25,4 @@ expo-env.d.ts
 # .env.prod
 /android
 /ios
+/auth-backend/.env

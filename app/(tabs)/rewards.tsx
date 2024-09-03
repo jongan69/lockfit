@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { createThemedStyles } from '@/styles/theme';
-import { fetchAndUpdateBalance, handleClaimRewards } from '@/utils/rewardsUtils';
+import { fetchAndUpdateBalance, handleClaimRewards } from '@/utils/solana/rewardsUtils';
 import Constants from 'expo-constants';
 import { useUserStore } from '@/stores/UserStore';
 

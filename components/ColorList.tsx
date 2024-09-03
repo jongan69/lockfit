@@ -2,11 +2,11 @@ import { Text, ScrollView, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useTheme } from '@/contexts/ThemeContext';
 import { createThemedStyles } from '@/styles/theme';
-import { LoginButton, LogoutButton } from './PhantomLoginButton';
+import LoginButton from './PhantomLoginButton';
 import { useTabBarVisibility } from '@/contexts/TabBarVisibilityContext';
 import { handleScroll } from '@/utils/handleScroll';
 
-const ColorList = ({color, items, publicKey, handleConnect, handleLogout, handleError}: {color: any, items: any, publicKey: any, handleConnect: any, handleLogout: any, handleError: any}) => {
+const ColorList = ({color, items}: {color: any, items: any}) => {
   const theme = useTheme();
   const isDarkMode = theme?.isDarkMode;
   const styles = createThemedStyles(isDarkMode ?? false);
@@ -16,11 +16,7 @@ const ColorList = ({color, items, publicKey, handleConnect, handleLogout, handle
       onScroll={(event) => handleScroll(event, setTabBarVisible)}
       scrollEventThrottle={16}
       contentContainerStyle={styles.colorlistcontainer}>
-         {publicKey ? (
-        <LogoutButton onLogout={handleLogout} />
-      ) : (
-        <LoginButton onConnect={handleConnect} onError={handleError} />
-      )}
+      <LoginButton />
       {
         items.map((item: any, index: number)=> (
           <TouchableOpacity

@@ -20,6 +20,7 @@
     "@react-native-picker/picker": "2.7.5",
     "@react-navigation/native": "^6.0.2",
     "@solana/web3.js": "^1.95.3",
+    "axios": "^1.7.7",
     "bs58": "^6.0.0",
     "expo": "~51.0.31",
     "expo-constants": "~16.0.2",
@@ -49,6 +50,7 @@
     "react-native-web": "~0.19.10",
     "text-encoding": "^0.7.0",
     "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
