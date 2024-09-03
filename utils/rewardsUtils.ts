@@ -1,8 +1,6 @@
-import { Dispatch } from 'redux';
-import { updateBalance } from '@/store/slices/users';
 import Constants from 'expo-constants';
 
-export const fetchAndUpdateBalance = async (publicKey: string, dispatch: Dispatch) => {
+export const fetchAndUpdateBalance = async (publicKey: string, updateStakedBalance: (balance: number) => void) => {
   try {
     const response = await fetch(`${Constants?.expoConfig?.extra?.rpcUrl}`, {
       method: 'POST',
@@ -20,7 +18,7 @@ export const fetchAndUpdateBalance = async (publicKey: string, dispatch: Dispatc
     });
     const { result } = await response.json();
     console.log(result)
-    dispatch(updateBalance(result.balance));
+    updateStakedBalance(result.balance);
   } catch (error) {
     console.error('Failed to fetch balance:', error);
   }
@@ -35,7 +33,11 @@ export const simulateStakingRewards = (stakedAmount: number, setRewards: (reward
   return interval;
 };
 
-export const handleStake = (stakeInput: string, setStakedAmount: (amount: number) => void, setStakeInput: (input: string) => void) => {
+export const handleStake = (
+  stakeInput: string, 
+  setStakedAmount: React.Dispatch<React.SetStateAction<number>>, 
+  setStakeInput: (input: string) => void
+) => {
   const amount = parseFloat(stakeInput);
   if (!isNaN(amount) && amount > 0) {
     setStakedAmount((prev: number) => prev + amount);
@@ -50,10 +52,13 @@ export const handleUnstake = (setStakedAmount: (amount: number) => void, setRewa
   setRewards(0);
 };
 
-export const handleClaimRewards = (rewards: number, setRewards: (rewards: number) => void) => {
+export const handleClaimRewards = (rewards: number, setRewards: (rewards: number) => void, updateRewardsBalance?: (balance: number) => void) => {
   if (rewards > 0) {
     console.log(`Claimed ${rewards.toFixed(4)} SOL`);
     setRewards(0);
+    if (updateRewardsBalance) {
+      updateRewardsBalance(rewards);
+    }
   } else {
     console.error('No rewards to claim');
   }

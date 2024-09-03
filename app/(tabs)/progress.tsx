@@ -1,13 +1,11 @@
 import React, { useRef } from 'react'
 import { View, Text, ScrollView } from 'react-native'
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from '../../store'
-import { updateExercisePR } from '../../store/slices/users'
-import { useTheme } from '../../context/ThemeContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { createThemedStyles } from '../../styles/theme'
 import { LineChart } from 'react-native-chart-kit'
-import { useTabBarVisibility } from '../../context/TabBarVisibilityContext'
+import { useTabBarVisibility } from '../../contexts/TabBarVisibilityContext'
 import { handleScroll } from '@/utils/handleScroll'
+import { useUserStore } from '../../stores/UserStore'
 
 const Progress = () => {
   const theme = useTheme();
@@ -15,9 +13,7 @@ const Progress = () => {
   const styles = createThemedStyles(isDarkMode);
   const { setTabBarVisible } = useTabBarVisibility() ?? {};
   const scrollViewRef = useRef(null);
-  const dispatch = useDispatch();
-
-  const exerciseProgress = useSelector((state: RootState) => state.user.exerciseProgress);
+  const { exerciseProgress } = useUserStore();
 
   const totalBigThree = exerciseProgress
     .filter(e => ['Squat', 'Bench Press', 'Deadlift'].includes(e.name))

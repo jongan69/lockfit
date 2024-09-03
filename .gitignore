@@ -18,6 +18,10 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
-.env
-.env.local
-.env.prod
+
+# react native ignores
+# .env
+# .env.local
+# .env.prod
+/android
+/ios

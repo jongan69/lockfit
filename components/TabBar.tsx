@@ -1,9 +1,9 @@
 import { View } from 'react-native'
 import React from 'react'
 import TabBarButton from './TabBarButton';
-import { useTabBarVisibility } from '../context/TabBarVisibilityContext'
+import { useTabBarVisibility } from '../contexts/TabBarVisibilityContext'
 import { COLORS } from '../styles/constants';
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { createThemedStyles } from '../styles/theme'
 
 

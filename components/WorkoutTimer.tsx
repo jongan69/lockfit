@@ -1,59 +1,52 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-
-interface Workout {
-  name: string;
-  sets: number;
-  reps: number;
-  duration: number;
-  restDuration: number;
-}
-
-interface WorkoutTimerProps {
-  workout: Workout;
-  onComplete: () => void;
-}
+import { WorkoutTimerProps } from '@/types/workout';
 
 const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ workout, onComplete }) => {
   const [currentSet, setCurrentSet] = useState(1);
   const [isResting, setIsResting] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
-  const [completedReps, setCompletedReps] = useState<number[]>(new Array(workout.sets).fill(workout.reps));
-  const [setCompleted, setSetCompleted] = useState<boolean[]>(new Array(workout.sets).fill(false));
+  const [completedReps, setCompletedReps] = useState<number[]>(
+    workout.exercises.map(exercise => exercise.reps || 0)
+  );
+  const [setCompleted, setSetCompleted] = useState<boolean[]>(
+    new Array(workout.exercises.length).fill(false)
+  );
   const [restTimeRemaining, setRestTimeRemaining] = useState(180); // 3 minutes in seconds
 
   const checkWorkoutCompletion = useCallback(() => {
-    if (setCompleted.every((completed) => completed)) {
+    if (setCompleted.every(completed => completed)) {
       onComplete();
     }
   }, [setCompleted, onComplete]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (!isResting && currentSet <= workout.sets) {
+    if (!isResting && currentSet <= workout.exercises.length) {
       timer = setInterval(() => {
-        setTimeElapsed((prevTime) => {
+        setTimeElapsed(prevTime => {
           const nextTime = prevTime + 1;
-          if (nextTime >= workout.duration) {
+          const currentExercise = workout.exercises[currentSet - 1];
+          if (nextTime >= (currentExercise.duration || 0)) {
             setIsResting(true);
-            setRestTimeRemaining(180); // Reset rest timer to 3 minutes
+            setRestTimeRemaining(180);
             return 0;
           }
           return nextTime;
         });
       }, 1000);
-    } else if (isResting && currentSet < workout.sets) {
+    } else if (isResting && currentSet < workout.exercises.length) {
       timer = setInterval(() => {
-        setRestTimeRemaining((prevTime) => {
+        setRestTimeRemaining(prevTime => {
           if (prevTime <= 1) {
-            setCurrentSet((prevSet) => prevSet + 1);
+            setCurrentSet(prevSet => prevSet + 1);
             setIsResting(false);
-            return 180; // Reset rest timer to 3 minutes
+            return 180;
           }
           return prevTime - 1;
         });
       }, 1000);
-    } else if (currentSet > workout.sets) {
+    } else if (currentSet > workout.exercises.length) {
       checkWorkoutCompletion();
     }
 
@@ -65,36 +58,34 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ workout, onComplete }) => {
   }, [setCompleted, checkWorkoutCompletion]);
 
   const handleRepClick = (setIndex: number) => {
-    setSetCompleted((prevCompleted) => {
+    setSetCompleted(prevCompleted => {
       const newCompleted = [...prevCompleted];
       if (!newCompleted[setIndex]) {
         newCompleted[setIndex] = true;
         setIsResting(true);
-        setRestTimeRemaining(180); // Start 3-minute rest timer
+        setRestTimeRemaining(180);
         return newCompleted;
       }
       return prevCompleted;
     });
 
-    setCompletedReps((prevReps) => {
+    setCompletedReps(prevReps => {
       const newReps = [...prevReps];
-      if (newReps[setIndex] > 0 && setCompleted[setIndex]) {
-        newReps[setIndex]--;
-      }
+      newReps[setIndex] = workout.exercises[setIndex].reps || 0;
       return newReps;
     });
   };
 
   const handleRepLongPress = (setIndex: number) => {
-    setSetCompleted((prevCompleted) => {
+    setSetCompleted(prevCompleted => {
       const newCompleted = [...prevCompleted];
       newCompleted[setIndex] = false;
       return newCompleted;
     });
 
-    setCompletedReps((prevReps) => {
+    setCompletedReps(prevReps => {
       const newReps = [...prevReps];
-      newReps[setIndex] = workout.reps;
+      newReps[setIndex] = workout.exercises[setIndex].reps || 0;
       return newReps;
     });
   };
@@ -108,7 +99,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ workout, onComplete }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.workoutName}>{workout.name}</Text>
-      <Text style={styles.setInfo}>Set {currentSet} of {workout.sets}</Text>
+      <Text style={styles.setInfo}>Set {currentSet} of {workout.exercises.length}</Text>
       <Text style={styles.timerText}>
         {isResting ? formatTime(restTimeRemaining) : formatTime(timeElapsed)}
       </Text>

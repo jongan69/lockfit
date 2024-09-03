@@ -1,9 +1,5 @@
+import { ThemeContextType } from '@/types/theme';
 import React, { createContext, useState, useContext } from 'react';
-
-interface ThemeContextType {
-  isDarkMode: boolean;
-  toggleTheme: () => void;
-}
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 

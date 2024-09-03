@@ -5,6 +5,7 @@ export const COLORS = {
   PINK: "#FF6B6B",
   BLUE: "#0891b2",
   WHITE: "#FFF",
+  YELLOW: "#FFFF00",
   GREY: "rgb(42, 42, 42)",
   GREY_2: "rgb(91, 91, 91)",
   DARK_GREY: "rgb(34, 34, 34)",

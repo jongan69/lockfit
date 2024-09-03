@@ -1,78 +1,101 @@
-import React, { useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
 import WorkoutTimer from './WorkoutTimer'
-import { useTabBarVisibility } from '../context/TabBarVisibilityContext'
+import { useTabBarVisibility } from '../contexts/TabBarVisibilityContext'
+import { CompletedWorkout, TimerWorkout, Workout, WorkoutListProps } from '../types/workout'
+import { Ionicons } from '@expo/vector-icons'
+import { useUserStore } from '@/stores/UserStore'
 
-interface Workout {
-    name: string;
-    sets: number;
-    reps: number;
-    weight: number;
-    duration: number;
-    restDuration: number;
-}
-
-interface WorkoutListProps {
-    workouts: Workout[];
-    onWorkoutStart: () => void;
-    onWorkoutComplete: () => void;
-}
-
-const WorkoutList: React.FC<WorkoutListProps> = ({ workouts, onWorkoutStart, onWorkoutComplete }) => {
+const WorkoutList: React.FC<WorkoutListProps> = ({ workouts, onWorkoutStart, onWorkoutComplete, onEditWorkout }) => {
     const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null)
-    const [modalVisible, setModalVisible] = useState(false)
     const [timerVisible, setTimerVisible] = useState(false)
+    const [workoutDuration, setWorkoutDuration] = useState(0)
+    const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null)
     const { setTabBarVisible } = useTabBarVisibility() || { setTabBarVisible: () => {} };
+    const { isImperial } = useUserStore();
+    const units = isImperial ? 'lbs' : 'kg';
 
-    const handleWorkoutPress = (workout: Workout) => {
-        setSelectedWorkout(workout)
-        setModalVisible(true)
-    }
-
-    const startWorkout = () => {
-        setTabBarVisible(false)
-        setModalVisible(false)
-        setTimerVisible(true)
+    const startWorkout = (workout: Workout) => {
+        setSelectedWorkout(workout);
+        setTimerVisible(true);
+        setTabBarVisible(false);
+        setWorkoutDuration(0);
+        const interval = setInterval(() => {
+            setWorkoutDuration(prev => prev + 1);
+        }, 1000);
+        setTimerInterval(interval);
+        onWorkoutStart(workout);
     }
 
     const handleWorkoutComplete = () => {
         setTabBarVisible(true)
         setTimerVisible(false)
-        setSelectedWorkout(null)
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        if (selectedWorkout) {
+            const completedWorkout: CompletedWorkout = {
+                name: selectedWorkout.name,
+                exercises: selectedWorkout.exercises.map(exercise => ({
+                    name: exercise.name,
+                    sets: Array.isArray(exercise.sets) ? exercise.sets.map(set => ({ reps: set.reps, weight: set.weight })) : []
+                })),
+                date: new Date().toISOString().split('T')[0],
+                duration: workoutDuration
+            };
+            onWorkoutComplete(completedWorkout);
+        }
+        setSelectedWorkout(null);
     }
+
+    useEffect(() => {
+        return () => {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+        };
+    }, [timerInterval]);
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
             {workouts.map((workout, index) => (
-                <TouchableOpacity key={index} style={styles.workoutCard} onPress={() => handleWorkoutPress(workout)}>
+                <View key={index} style={styles.workoutCard}>
                     <Text style={styles.workoutName}>{workout.name}</Text>
-                    <Text style={styles.workoutDetails}>Sets: {workout.sets} x Reps: {workout.reps}</Text>
-                    <Text style={styles.workoutWeight}>Weight: {workout.weight} kg</Text>
-                </TouchableOpacity>
-            ))}
-
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.centeredView}>
-                    <View style={styles.modalView}>
-                        <Text style={styles.modalText}>Start {selectedWorkout?.name ?? 'selected'} workout?</Text>
-                        <TouchableOpacity style={styles.button} onPress={startWorkout}>
-                            <Text style={styles.buttonText}>Start Workout</Text>
+                    {workout.exercises.map((exercise, exerciseIndex) => (
+                        <View key={exerciseIndex}>
+                            <Text style={styles.exerciseName}>{exercise.name}</Text>
+                            <Text style={styles.workoutDetails}>
+                                Sets: {Array.isArray(exercise.sets) ? exercise.sets.length : 0} x Reps: {Array.isArray(exercise.sets) && exercise.sets.length > 0 ? exercise.sets[0].reps : 0}
+                            </Text>
+                            <Text style={styles.workoutWeight}>
+                                Weight: {Array.isArray(exercise.sets) && exercise.sets.length > 0 ? exercise.sets[0].weight : 0} {units}
+                            </Text>
+                        </View>
+                    ))}
+                    {workout.exercises.length > 0 && (
+                        <TouchableOpacity style={styles.startButton} onPress={() => startWorkout(workout)}>
+                            <Text style={styles.startButtonText}>Start Workout</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.button, styles.buttonClose]} onPress={() => setModalVisible(false)}>
-                            <Text style={styles.buttonText}>Cancel</Text>
-                        </TouchableOpacity>
-                    </View>
+                    )}
+                    <TouchableOpacity onPress={() => onEditWorkout(workout)} style={styles.editButton}>
+                        <Ionicons name="pencil" size={24} color="white" />
+                    </TouchableOpacity>
                 </View>
-            </Modal>
+            ))}
 
             {timerVisible && selectedWorkout && (
                 <WorkoutTimer
-                    workout={selectedWorkout}
+                    workout={{
+                        ...selectedWorkout,
+                        exercises: selectedWorkout.exercises.map(exercise => ({
+                            ...exercise,
+                            duration: 0,
+                            restDuration: 180, // 3 minutes rest
+                        })),
+                        reps: 0,
+                        duration: workoutDuration,
+                        restDuration: 180, // 3 minutes rest
+                    } as TimerWorkout}
                     onComplete={handleWorkoutComplete}
                 />
             )}
@@ -89,63 +112,45 @@ const styles = StyleSheet.create({
         width: '100%',
         padding: 15,
         borderRadius: 25,
-        borderCurve: 'continuous',
         marginBottom: 15,
         backgroundColor: '#f0f0f0',
     },
     workoutName: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 5,
+        marginBottom: 10,
+    },
+    exerciseName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 5,
     },
     workoutDetails: {
-        fontSize: 16,
+        fontSize: 14,
         marginBottom: 3,
     },
     workoutWeight: {
-        fontSize: 16,
+        fontSize: 14,
     },
-    centeredView: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalView: {
-        margin: 20,
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 35,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5
-    },
-    button: {
-        borderRadius: 20,
+    startButton: {
+        backgroundColor: '#4CAF50',
         padding: 10,
-        elevation: 2,
-        backgroundColor: '#2196F3',
-        marginTop: 15,
-        minWidth: 100,
+        borderRadius: 5,
+        marginTop: 10,
+        alignItems: 'center',
     },
-    buttonClose: {
-        backgroundColor: '#FF6347',
-    },
-    buttonText: {
+    startButtonText: {
         color: 'white',
         fontWeight: 'bold',
-        textAlign: 'center',
     },
-    modalText: {
-        marginBottom: 15,
-        textAlign: 'center',
-        fontSize: 18,
+    editButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: '#4CAF50',
+        padding: 5,
+        borderRadius: 5,
+        alignItems: 'center',
     },
 })
 

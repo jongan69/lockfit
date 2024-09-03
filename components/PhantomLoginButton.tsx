@@ -3,15 +3,11 @@ import { Text, TouchableOpacity } from "react-native";
 import * as Linking from "expo-linking";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
-import { clusterApiUrl, Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { clusterApiUrl, PublicKey } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import Toast from "react-native-toast-message";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { createThemedStyles } from "@/styles/theme";
-import { useDispatch } from 'react-redux';
-import { setPublicKey } from '../store/slices/users';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
 
 const NETWORK = clusterApiUrl("mainnet-beta");
 const useUniversalLinks = false;
@@ -20,29 +16,18 @@ const buildUrl = (path: string, params: URLSearchParams) =>
   `${useUniversalLinks ? "https://phantom.app/ul/" : "phantom://"}v1/${path}?${params.toString()}`;
 
 const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) => void, onError: (error: string) => void }) => {
-  const theme = useTheme();
-  const isDarkMode = theme?.isDarkMode;
+  const { isDarkMode } = useTheme() || {};
   const styles = createThemedStyles(isDarkMode ?? false);
-  const [submitting, setSubmitting] = useState(false);
-  // In your sign-in component
-  const dispatch = useDispatch();
-  const publicKey = useSelector((state: RootState) => state.user.publicKey);
   const [deepLink, setDeepLink] = useState<string>("");
-  const [sharedSecret, setSharedSecret] = useState<Uint8Array | undefined>();
-  const [session, setSession] = useState<string | undefined>();
-  const [phantomWalletPublicKey, setPhantomWalletPublicKey] = useState<PublicKey | undefined>();
+  const [sharedSecret, setSharedSecret] = useState<Uint8Array>();
+  const [session, setSession] = useState<string>();
+  const [phantomWalletPublicKey, setPhantomWalletPublicKey] = useState<PublicKey>();
   const [dappKeyPair] = useState(nacl.box.keyPair());
-  const connection = new Connection(NETWORK);
 
   useEffect(() => {
-    const handleDeepLink = ({ url }: Linking.EventType) => {
-      setDeepLink(url);
-    };
-
+    const handleDeepLink = ({ url }: Linking.EventType) => setDeepLink(url);
     const subscription = Linking.addEventListener("url", handleDeepLink);
-    return () => {
-      subscription.remove();
-    };
+    return () => subscription.remove();
   }, []);
 
   useEffect(() => {
@@ -74,11 +59,10 @@ const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) =>
         setPhantomWalletPublicKey(new PublicKey(connectData.public_key));
 
         onConnect(connectData.public_key);
-        dispatch(setPublicKey(connectData.public_key));
         Toast.show({
           type: "success",
           text1: "Login Successful",
-          text2: publicKey ?? "",
+          text2: connectData.public_key,
         });
       } else {
         Toast.show({
@@ -88,10 +72,9 @@ const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) =>
         });
       }
     } catch (error) {
-      // console.error("Error:", error);
       onError(error instanceof Error ? error.message : String(error));
     }
-  }, [deepLink, dispatch, publicKey, dappKeyPair.secretKey,onConnect, onError]);
+  }, [deepLink, dappKeyPair.secretKey, onConnect, onError]);
 
   const decryptPayload = (data: string, nonce: string, sharedSecret?: Uint8Array) => {
     if (!sharedSecret) throw new Error("missing shared secret");
@@ -114,7 +97,6 @@ const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) =>
     const url = buildUrl("connect", params);
     Linking.openURL(url);
   };
-  
 
   return (
     <TouchableOpacity style={[styles.colorlist, { backgroundColor: styles.button.backgroundColor }]} onPress={connect}>
@@ -126,9 +108,9 @@ const LoginButton = ({ onConnect, onError }: { onConnect: (publicKey: string) =>
 };
 
 const LogoutButton = ({ onLogout }: { onLogout: () => void }) => {
-  const theme = useTheme();
-  const isDarkMode = theme?.isDarkMode;
+  const { isDarkMode } = useTheme() || {};
   const styles = createThemedStyles(isDarkMode ?? false);
+
   const disconnect = async () => {
     const params = new URLSearchParams({
       dapp_encryption_public_key: bs58.encode(nacl.box.keyPair().publicKey),
@@ -142,7 +124,7 @@ const LogoutButton = ({ onLogout }: { onLogout: () => void }) => {
 
   return (
     <TouchableOpacity style={[styles.colorlist, { backgroundColor: styles.button.backgroundColor }]} onPress={disconnect}>
-      <Text style={[styles.cardTitle]}>
+      <Text style={styles.cardTitle}>
         Disconnect from Phantom
       </Text>
     </TouchableOpacity>

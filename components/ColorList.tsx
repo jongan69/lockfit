@@ -1,9 +1,9 @@
 import { Text, ScrollView, TouchableOpacity } from 'react-native'
 import React from 'react'
-import { useTheme } from '@/context/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { createThemedStyles } from '@/styles/theme';
 import { LoginButton, LogoutButton } from './PhantomLoginButton';
-import { useTabBarVisibility } from '@/context/TabBarVisibilityContext';
+import { useTabBarVisibility } from '@/contexts/TabBarVisibilityContext';
 import { handleScroll } from '@/utils/handleScroll';
 
 const ColorList = ({color, items, publicKey, handleConnect, handleLogout, handleError}: {color: any, items: any, publicKey: any, handleConnect: any, handleLogout: any, handleError: any}) => {

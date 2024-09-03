@@ -1,35 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store';
-import { useTheme } from '@/context/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { createThemedStyles } from '@/styles/theme';
-import { fetchAndUpdateBalance, handleClaimRewards } from '../../utils/rewardsUtils';
+import { fetchAndUpdateBalance, handleClaimRewards } from '@/utils/rewardsUtils';
 import Constants from 'expo-constants';
+import { useUserStore } from '@/stores/UserStore';
 
 const Rewards = () => {
-  const dispatch = useDispatch();
-  const publicKey = useSelector((state: RootState) => state.user.publicKey);
-  const workoutData = useSelector((state: RootState) => state.user.workoutData);
-  const stakedBalance = useSelector((state: RootState) => state.user.stakedBalance);
-  const [rewards, setRewards] = useState<number>(0);
-  const [multiplier, setMultiplier] = useState<number>(1);
-  const theme = useTheme();
-  const isDarkMode = theme?.isDarkMode;
-  const styles = createThemedStyles(isDarkMode ?? false);
+  const {
+    publicKey,
+    workoutData,
+    stakedBalance,
+    updateStakedBalance,
+    updateRewardsBalance,
+  } = useUserStore();
+  const [rewards, setRewards] = useState(0);
+  const [multiplier, setMultiplier] = useState(1);
+  const { isDarkMode } = useTheme() || { isDarkMode: false };
+  const styles = createThemedStyles(isDarkMode);
 
   useEffect(() => {
     if (publicKey) {
-      fetchAndUpdateBalance(publicKey, dispatch);
+      fetchAndUpdateBalance(publicKey, updateStakedBalance);
     }
-  }, [publicKey]);
+  }, [publicKey, updateStakedBalance]);
 
   useEffect(() => {
     if (stakedBalance > 0) {
-      // Calculate rewards based on workout activity and staked balance
-      const totalWorkoutMinutes = workoutData.reduce((acc: number, workout: any) => acc + workout.duration, 0);
-      const baseRewards = stakedBalance * 0.01; // 1% of staked balance as base rewards
-      const workoutMultiplier = 1 + (totalWorkoutMinutes / 60) * 0.1; // 10% increase for every hour worked out
+      const totalWorkoutMinutes = workoutData.reduce((acc, workout) => acc + workout.duration, 0);
+      const baseRewards = stakedBalance * 0.01;
+      const workoutMultiplier = 1 + (totalWorkoutMinutes / 60) * 0.1;
       setMultiplier(workoutMultiplier);
       setRewards(baseRewards * workoutMultiplier);
     } else {
@@ -69,7 +69,7 @@ const Rewards = () => {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Workout Activity</Text>
-          {workoutData.map((workout: any, index: number) => (
+          {workoutData.map((workout, index) => (
             <View key={index} style={styles.workoutCard}>
               <Text style={styles.workoutDate}>{workout.date}</Text>
               <Text style={styles.workoutText}>Duration: {workout.duration} mins</Text>
@@ -80,7 +80,7 @@ const Rewards = () => {
 
         <TouchableOpacity 
           style={styles.rewardsButton} 
-          onPress={() => handleClaimRewards(rewards, setRewards)}
+          onPress={() => handleClaimRewards(rewards, setRewards, updateRewardsBalance)}
           disabled={rewards <= 0}
         >
           <Text style={styles.buttonText}>Claim Rewards</Text>
