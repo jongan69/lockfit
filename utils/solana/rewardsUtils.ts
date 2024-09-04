@@ -18,7 +18,7 @@ export const fetchAndUpdateBalance = async (publicKey: string, updateStakedBalan
     });
     const { result } = await response.json();
     console.log(result)
-    updateStakedBalance(result.balance);
+    updateStakedBalance(result);
   } catch (error) {
     console.error('Failed to fetch balance:', error);
   }

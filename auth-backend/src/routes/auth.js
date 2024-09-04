@@ -2,7 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import bs58 from 'bs58';
 import { PublicKey } from '@solana/web3.js';
-import * as User from '../models/User';
+import User from '../models/User';
 import crypto from 'crypto';
 import nacl from 'tweetnacl';
 import { Buffer } from 'buffer';
@@ -23,7 +23,7 @@ router.post('/request_nonce', async (req, res) => {
   }
 
   try {
-    let user = await User.findOne({ publicKey });
+    let user = await User?.findOne({ publicKey });
 
     if (!user) {
       user = new User({ publicKey });
@@ -50,7 +50,7 @@ router.post('/verify_signature', async (req, res) => {
   if (!publicKey || !signature || !nonce) {
     return res.status(400).json({ error: 'Public key, signature, and nonce are required' });
   }
-  const user = await User.findOne({ publicKey });
+  const user = await User?.findOne({ publicKey });
 
   const message = `Authentication nonce: ${user.nonce}`;
   const messageBytes = Buffer.from(message);
@@ -69,7 +69,7 @@ router.post('/verify_signature', async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ publicKey });
+    const user = await User?.findOne({ publicKey });
 
     if (!user) {
       return res.status(400).json({ error: 'User not found' });

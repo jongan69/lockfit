@@ -6,12 +6,12 @@ import { Transaction, SystemProgram, Connection, PublicKey } from '@solana/web3.
  * @param   {Connection}  connection an RPC connection
  * @returns {Transaction}            a transaction
  */
-const createTransferTransaction = async (publicKey: PublicKey, connection: Connection): Promise<Transaction> => {
+const createTransferTransaction = async (publicKey: PublicKey, connection: Connection, amount: number): Promise<Transaction> => {
   const transaction = new Transaction().add(
     SystemProgram.transfer({
       fromPubkey: publicKey,
       toPubkey: publicKey,
-      lamports: 100,
+      lamports: amount,
     })
   );
   transaction.feePayer = publicKey;

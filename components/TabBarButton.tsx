@@ -53,7 +53,7 @@ const TabBarButton = (props: { routeName: IconName; color: string; isFocused: bo
     return (
         <Pressable {...props} style={styles.container}>
             <Animated.View style={[animatedIconStyle]}>
-                {icons[props.routeName]({ color: props.color })}
+                {icons[routeName]({ color: props.color })}
             </Animated.View>
 
             <Animated.Text style={[{

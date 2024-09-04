@@ -1,7 +1,7 @@
 import nacl from "tweetnacl";
 import bs58 from "bs58";
 
-export const decryptPayload = (
+const decryptPayload = (
   data: string,
   nonce: string,
   sharedSecret?: Uint8Array
@@ -18,3 +18,5 @@ export const decryptPayload = (
   }
   return JSON.parse(Buffer.from(decryptedData).toString("utf8"));
 };
+
+export default decryptPayload;

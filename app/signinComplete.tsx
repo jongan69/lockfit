@@ -1,49 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import * as Linking from 'expo-linking';
-import { Connection, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
-import { useAuthStore } from "../stores/AuthStore";
+import { Connection, PublicKey } from "@solana/web3.js";
 import Constants from "expo-constants";
 import { router, Stack } from 'expo-router';
 import { Alert, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import axios from 'axios';
 import bs58 from 'bs58';
 import nacl from 'tweetnacl';
-import { encryptPayload } from "../utils/solana/encryptPayload";
-import { buildUrl } from "../utils/solana/buildUrl";
-import { decryptPayload } from '@/utils/solana/decryptPayload';
-import axios from 'axios';
-import { decodeUTF8 } from "tweetnacl-util";
+import { buildUrl, encryptPayload, decryptPayload } from "../utils/solana";
+import { useAuthStore } from '../stores/AuthStore';
 
 const backendUrl = Constants.expoConfig?.extra?.backendUrl;
 const solanaRpcUrl = Constants.expoConfig?.extra?.rpcUrl;
-// const devWallet = Constants.expoConfig?.extra?.devWallet;
 
 const SigninComplete: React.FC = () => {
   const { getSharedSecretUint8Array, session, getPublicKey, getDappKeyPair, setAuth, setNonce, getNonce } = useAuthStore();
   const [connection, setConnection] = useState<Connection | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [phantomWalletPublicKey, setPhantomWalletPublicKey] = useState<PublicKey | null>(null);
-  const [isSigningIn, setIsSigningIn] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const sharedSecretUint8Array = getSharedSecretUint8Array();
   
-  useEffect(() => {
-    // Initialize Solana connection and decode public key
-    const initializeConnection = async () => {
-      const publicKey = getPublicKey();
-      if (publicKey) {
-        const decodedPublicKey = decodeURIComponent(publicKey);
-        setPhantomWalletPublicKey(new PublicKey(decodedPublicKey));
-        await requestNonce(publicKey);
-        const newConnection = new Connection(solanaRpcUrl);
-        setConnection(newConnection);
-      } else {
-        console.error('Public key is missing from the Store:', publicKey);
-      }
-    };
-
-    initializeConnection();
-  }, []);
-
-  const requestNonce = async (publicKey: string, retries = 3) => {
+  const requestNonce = useCallback(async (publicKey: string, retries = 3) => {
     try {
       const nonceResponse = await axios.post(
         `${backendUrl}/api/auth/request_nonce`,
@@ -61,9 +38,27 @@ const SigninComplete: React.FC = () => {
         Alert.alert("Error", "Failed to request authentication nonce. Please try again.");
       }
     }
-  };
+  }, [setNonce]);
 
-  const verifySignature = async (publicKey: PublicKey, signature: any) => {
+  useEffect(() => {
+    // Initialize Solana connection and decode public key
+    const initializeConnection = async () => {
+      const publicKey = getPublicKey();
+      if (publicKey) {
+        const decodedPublicKey = decodeURIComponent(publicKey);
+        setPhantomWalletPublicKey(new PublicKey(decodedPublicKey));
+        await requestNonce(publicKey);
+        const newConnection = new Connection(solanaRpcUrl);
+        setConnection(newConnection);
+      } else {
+        console.error('Public key is missing from the Store:', publicKey);
+      }
+    };
+
+    initializeConnection();
+  }, [getPublicKey, requestNonce]);
+
+  const verifySignature = useCallback(async (publicKey: PublicKey, signature: any) => {
     try {
       console.log("Verifying signature...");
       
@@ -109,8 +104,7 @@ const SigninComplete: React.FC = () => {
     } finally {
       setIsSigningIn(false);
     }
-  };
-
+  }, [getNonce, session, setAuth, sharedSecretUint8Array]);
 
   const signAndSendTransaction = async () => {
     const sharedSecretUint8Array = getSharedSecretUint8Array();
@@ -122,61 +116,28 @@ const SigninComplete: React.FC = () => {
       return;
     }
 
-    // Create a new Transaction
-    // const transaction = new Transaction();
-    // const lamportsToSend = 0.0002 * 1e9; // 1 SOL = 1e9 lamports
-    // Create a System Program Transfer instruction
-    // const transferInstruction = SystemProgram.transfer({
-    //   fromPubkey: new PublicKey(phantomWalletPublicKey),
-    //   toPubkey: new PublicKey(devWallet),
-    //   lamports: lamportsToSend,
-    // });
     const message = `Authentication nonce: ${getNonce()}`;
-    // const encodedMessage = decodeUTF8(message);
     const payload = {
       session,
       message: bs58.encode(Buffer.from(message)),
     };
     const [nonceForSign, encryptedPayload] = encryptPayload(payload, sharedSecret);
 
-
-    // Add the instruction to the transaction
-    // const signTransactionInstruction = SystemProgram.signTransaction({
-    //   fromPubkey: new PublicKey(phantomWalletPublicKey),
-    //   toPubkey: new PublicKey(devWallet),
-    //   lamports: lamportsToSend,
-    // });
-
-    // Add the instruction to the transaction
-    // transaction.add(transferInstruction);
-
-    setSubmitting(true);
+    setIsSigningIn(true);
     try {
-      // transaction.feePayer = phantomWalletPublicKey;
-      // transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-      // const serializedTransaction = transaction.serialize({ requireAllSignatures: false, verifySignatures: false });
-      // const payload = {
-      //   session,
-      //   transaction: bs58.encode(serializedTransaction),
-      // };
-
-      // const [nonce, encryptedPayload] = encryptPayload(payload, sharedSecretUint8Array);
       const params = new URLSearchParams({
         dapp_encryption_public_key: bs58.encode(dappKeyPair?.publicKey),
         nonce: bs58.encode(nonceForSign),
         redirect_link: Linking.createURL("signinComplete"),
         payload: bs58.encode(encryptedPayload),
       });
-      // const url = buildUrl("signAndSendTransaction", params);
 
       const url = buildUrl("signMessage", params);
       Linking.openURL(url);
     } catch (error) {
       console.error("Transaction failed:", error);
       Alert.alert("Transaction Error", "Failed to sign in. Please try again.");
-    } finally {
-      setSubmitting(false);
+      setIsSigningIn(false);
     }
   };
 
@@ -194,6 +155,7 @@ const SigninComplete: React.FC = () => {
       console.log("sharedSecret", sharedSecret);
       if (!data || !nonce || !sharedSecret || !publicKey) {
         console.log("No query params found in the deep link");
+        setIsSigningIn(false);
         return;
       }
 
@@ -211,6 +173,7 @@ const SigninComplete: React.FC = () => {
       } else {
         console.log("No signature found in the response");
         Alert.alert("Transaction Error", "No signature found in the response");
+        setIsSigningIn(false);
       }
     };
 
@@ -218,7 +181,7 @@ const SigninComplete: React.FC = () => {
     return () => {
       listener.remove();
     };
-  }, []);
+  }, [getPublicKey, getSharedSecretUint8Array, getNonce, verifySignature]);
 
   return (
     <>
@@ -241,13 +204,13 @@ const SigninComplete: React.FC = () => {
         <TouchableOpacity
           style={styles.button}
           onPress={async () => await signAndSendTransaction()}
-          disabled={submitting}
+          disabled={isSigningIn}
         >
           <Text style={styles.buttonText}>
-            {submitting ? "Submitting..." : "Sign and Send Transaction"}
+            {isSigningIn ? "Signing In..." : "Sign and Send Transaction"}
           </Text>
         </TouchableOpacity>
-        {submitting && (
+        {isSigningIn && (
           <ActivityIndicator style={styles.spinner} size="large" color="#0000ff" />
         )}
       </View>

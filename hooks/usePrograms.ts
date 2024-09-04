@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { CustomProgram, Program } from '@/types/program';
+import { CustomProgram } from '@/types/program';
 import { useUserStore } from '@/stores/UserStore';
 
 export const usePrograms = () => {

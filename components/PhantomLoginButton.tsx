@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from "react";
 import {
   Text,
@@ -7,16 +8,12 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { Buffer } from "buffer";
-global.Buffer = global.Buffer || Buffer;
 import { PublicKey } from "@solana/web3.js";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
 import * as Linking from "expo-linking";
 import { useAuthStore } from "../stores/AuthStore";
-import { decryptPayload } from "../utils/solana/decryptPayload";
-import { encryptPayload } from "../utils/solana/encryptPayload";
-import { buildUrl } from "../utils/solana/buildUrl";
+import { decryptPayload, encryptPayload, buildUrl } from "../utils/solana";
 import { router, useLocalSearchParams } from "expo-router";
 
 interface LoginButtonProps {
@@ -34,6 +31,14 @@ const LoginButton: React.FC<LoginButtonProps> = ({ submitting }) => {
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const { disconnectParam } = useLocalSearchParams();
 
+  const handleDeepLink = useCallback(
+    ({ url }: Linking.EventType) => {
+      setDeepLink(url);
+      console.log("Received deep link:", url);
+    },
+    [setDeepLink]
+  );
+
   useEffect(() => {
     const initializeDeeplinks = async () => {
       const initialUrl = await Linking.getInitialURL();
@@ -47,50 +52,9 @@ const LoginButton: React.FC<LoginButtonProps> = ({ submitting }) => {
     return () => {
       listener.remove();
     };
-  }, []);
+  }, [handleDeepLink]);
 
-  const handleDeepLink = useCallback(
-    ({ url }: Linking.EventType) => {
-      setDeepLink(url);
-      console.log("Received deep link:", url);
-    },
-    [setDeepLink]
-  );
-
-  useEffect(() => {
-    if (!deepLink) return;
-
-    const url = new URL(deepLink);
-    const params = url.searchParams;
-
-    console.log("Processing deep link:", deepLink);
-
-    if (params.get("errorCode")) {
-      console.log('errorCode', params.get("errorCode"));
-      handleError(params);
-      return;
-    }
-
-    if (params.get("phantom_encryption_public_key")) {
-      console.log("phantom_encryption_public_key", params.get("phantom_encryption_public_key"));
-      handleConnect(params);
-    } else if (disconnectParam === "true") {
-      console.log('disconnectParam:', disconnectParam);
-      handleDisconnect();
-    }
-  }, [deepLink, disconnectParam]);
-
-  const handleError = (params: URLSearchParams) => {
-    const error = Object.fromEntries([...params]);
-    const message = error?.errorMessage ?? JSON.stringify(error, null, 2);
-    console.error("Phantom connection error:", message);
-    Alert.alert("Connection Error", message);
-    setError(message);
-    setIsConnecting(false);
-    setIsDisconnecting(false);
-  };
-
-  const handleConnect = async (params: URLSearchParams) => {
+  const handleConnect = useCallback(async (params: URLSearchParams) => {
     try {
       console.log("Handling connection...");
       const phantomEncryptionPublicKey = bs58.decode(params.get("phantom_encryption_public_key")!);
@@ -131,9 +95,19 @@ const LoginButton: React.FC<LoginButtonProps> = ({ submitting }) => {
     } finally {
       setIsConnecting(false);
     }
-  };
+  }, [dappKeyPair, setSession, setSharedSecret, setPublicKey, setDappKeyPair]);
 
-  const handleDisconnect = () => {
+  const handleError = useCallback((params: URLSearchParams) => {
+    const error = Object.fromEntries([...params]);
+    const message = error?.errorMessage ?? JSON.stringify(error, null, 2);
+    console.error("Phantom connection error:", message);
+    Alert.alert("Connection Error", message);
+    setError(message);
+    setIsConnecting(false);
+    setIsDisconnecting(false);
+  }, []);
+
+  const handleDisconnect = useCallback(() => {
     console.log("Handling disconnection...");
     setPhantomWalletPublicKey(null);
     setSharedSecret(null);
@@ -143,7 +117,30 @@ const LoginButton: React.FC<LoginButtonProps> = ({ submitting }) => {
     console.log("Disconnected");
     Alert.alert("Disconnected", "You have been disconnected from Phantom wallet.");
     setIsDisconnecting(false);
-  };
+  }, [logout, setSharedSecret, setSession, setPublicKey]);
+
+  useEffect(() => {
+    if (!deepLink) return;
+
+    const url = new URL(deepLink);
+    const params = url.searchParams;
+
+    console.log("Processing deep link:", deepLink);
+
+    if (params.get("errorCode")) {
+      console.log('errorCode', params.get("errorCode"));
+      handleError(params);
+      return;
+    }
+
+    if (params.get("phantom_encryption_public_key")) {
+      console.log("phantom_encryption_public_key", params.get("phantom_encryption_public_key"));
+      handleConnect(params);
+    } else if (disconnectParam === "true") {
+      console.log('disconnectParam:', disconnectParam);
+      handleDisconnect();
+    }
+  }, [deepLink, disconnectParam, handleConnect, handleDisconnect, handleError]);
 
   const connect = async () => {
     console.log("Initiating connection...");
@@ -170,7 +167,7 @@ const LoginButton: React.FC<LoginButtonProps> = ({ submitting }) => {
       if (!session || !sharedSecret || !currentDappKeyPair) {
         throw new Error("Session or shared secret is not available");
       }
-      
+
       const payload = { session };
       const [nonce, encryptedPayload] = encryptPayload(payload, sharedSecret);
       const params = new URLSearchParams({

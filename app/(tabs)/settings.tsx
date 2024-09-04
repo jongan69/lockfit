@@ -15,18 +15,14 @@ const Settings = () => {
   const styles = createThemedStyles(isDarkMode ?? false);
 
   const { isImperial, toggleUnits } = useUserStore();
-  const { getSharedSecretUint8Array, session, getPublicKey, getDappKeyPair, setAuth, setNonce, getNonce } = useAuthStore();
+  const { getPublicKey } = useAuthStore();
   const { notificationsEnabled, toggleNotifications, language, setLanguage } = useAppStore();
 
-  // const handleConnect = (key: string) => setPublicKey(key);
-  // const handleLogout = () => setPublicKey("");
-  const handleError = (error: any) => {
-    console.log(error);
-    const { errorCode, errorMessage } = JSON.parse(error);
+  const showToast = (message: string) => {
     Toast.show({
-      type: "error",
-      text1: `Error Code: ${errorCode}`,
-      text2: errorMessage,
+      type: 'success',
+      text1: message,
+      position: 'bottom',
     });
   };
 
@@ -34,7 +30,10 @@ const Settings = () => {
     {
       id: 1,
       name: `Switch to ${isDarkMode ? 'Light' : 'Dark'} mode\nApp theme: ${isDarkMode ? 'Dark' : 'Light'}\nSystem theme: ${colorScheme ? colorScheme[0].toUpperCase() + colorScheme.slice(1) : 'Unknown'}`,
-      action: toggleTheme
+      action: () => {
+        toggleTheme?.();
+        showToast(`Switched to ${isDarkMode ? 'Light' : 'Dark'} mode`);
+      }
     },
     {
       id: 2,
@@ -44,17 +43,27 @@ const Settings = () => {
     {
       id: 4,
       name: `Set Units: ${isImperial ? 'Imperial' : 'Metric'}`,
-      action: toggleUnits
+      action: () => {
+        toggleUnits();
+        showToast(`Units set to ${isImperial ? 'Metric' : 'Imperial'}`);
+      }
     },
     {
       id: 5,
       name: `Enable Notifications: ${notificationsEnabled ? 'On' : 'Off'}`,
-      action: toggleNotifications
+      action: () => {
+        toggleNotifications();
+        showToast(`Notifications ${notificationsEnabled ? 'disabled' : 'enabled'}`);
+      }
     },
     {
       id: 7,
       name: `Language: ${language}`,
-      action: () => setLanguage(language === 'English' ? 'Spanish' : 'English')
+      action: () => {
+        const newLanguage = language === 'English' ? 'Spanish' : 'English';
+        setLanguage(newLanguage);
+        showToast(`Language set to ${newLanguage}`);
+      }
     },
     {
       id: 9,
@@ -74,10 +83,6 @@ const Settings = () => {
       <ColorList 
         color={styles.button.backgroundColor} 
         items={colorListItems} 
-        // publicKey={getPublicKey()} 
-        // handleConnect={handleConnect} 
-        // handleLogout={handleLogout} 
-        // handleError={handleError} 
       />
     </View>
   );

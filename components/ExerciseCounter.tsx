@@ -1,4 +1,3 @@
-import { getUnits } from '@/stores/AppStore';
 import { useUserStore } from '@/stores/UserStore';
 import React from 'react';
 import { View, Text } from 'react-native';

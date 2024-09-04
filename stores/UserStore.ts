@@ -6,24 +6,13 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserState {
-  publicKey: string;
   isImperial: boolean;
-  currentBalance: number;
-  stakedBalance: number;
-  rewardsBalance: number;
-  timeStaked: number;
   workoutData: WorkoutData[];
   customPrograms: CustomProgram[];
   recentActivity: string[];
   exerciseProgress: ExerciseProgress[];
   selectedProgram: Program | CustomProgram | null;
-  setPublicKey: (key: string) => void;
-  clearPublicKey: () => void;
   toggleUnits: () => void;
-  updateBalance: (balance: number) => void;
-  updateStakedBalance: (balance: number) => void;
-  updateRewardsBalance: (balance: number) => void;
-  updateTimeStaked: (time: number) => void;
   setWorkoutData: (data: WorkoutData[]) => void;
   setCustomPrograms: (programs: CustomProgram[]) => void;
   addRecentActivity: (activity: string) => void;
@@ -37,16 +26,16 @@ interface UserState {
     [date: string]: {
       workout: {
         name: string;
-        exercises: Array<{
+        exercises: {
           name: string;
-          sets: Array<{
+          sets: {
             weight: number;
             unit: string;
             reps: number;
-          }>
-        }>
-      }
-    }
+          }[];
+        }[];
+      };
+    };
   };
   saveCustomPrograms: (programs: CustomProgram[]) => void;
 }
@@ -54,24 +43,13 @@ interface UserState {
 export const useUserStore = create(
   persist<UserState>(
     (set) => ({
-      publicKey: '',
       isImperial: false,
-      currentBalance: 0,
-      stakedBalance: 0,
-      rewardsBalance: 0,
-      timeStaked: 0,
       workoutData: [],
       customPrograms: [],
       recentActivity: [],
       exerciseProgress: [],
       selectedProgram: null,
-      setPublicKey: (key) => set({ publicKey: key }),
-      clearPublicKey: () => set({ publicKey: '' }),
       toggleUnits: () => set((state) => ({ isImperial: !state.isImperial })),
-      updateBalance: (balance) => set({ currentBalance: balance }),
-      updateStakedBalance: (balance) => set({ stakedBalance: balance }),
-      updateRewardsBalance: (balance) => set({ rewardsBalance: balance }),
-      updateTimeStaked: (time) => set({ timeStaked: time }),
       setWorkoutData: (data) => set({ workoutData: data }),
       setCustomPrograms: (programs) => set({ customPrograms: programs }),
       addRecentActivity: (activity) => set((state) => {

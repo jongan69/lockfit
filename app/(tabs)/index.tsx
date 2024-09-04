@@ -7,10 +7,10 @@ import ExerciseCounter from '../../components/ExerciseCounter'
 import WorkoutTimer from '../../components/WorkoutTimer'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useTabBarVisibility } from '@/contexts/TabBarVisibilityContext'
-import { useUserStore } from '../../stores/UserStore'
 import { createThemedStyles } from '../../styles/theme'
 import { CompletedWorkout, Workout } from '../../types/workout'
 import { handleEditCustomProgram } from '@/utils/editCustomProgram';
+import { useUserStore } from '../../stores/UserStore'
 
 const Home = () => {
   const { isDarkMode } = useTheme() || { isDarkMode: false }

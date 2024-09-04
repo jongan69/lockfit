@@ -1,10 +1,12 @@
 import "react-native-get-random-values";
 import "react-native-url-polyfill/auto";
+import { Buffer } from "buffer";
 import React from 'react';
 import { Tabs } from 'expo-router';
 import TabBar from '../../components/TabBar';
 import { useTheme } from '../../contexts/ThemeContext';
 import { createThemedStyles } from '../../styles/theme';
+global.Buffer = global.Buffer || Buffer;
 
 const tabScreens = [
   { name: "index", title: "Home" },
