@@ -13,30 +13,15 @@ const Rewards = () => {
   } = useUserStore();
   const { publicKey } = useAuthStore();
   const [rewards, setRewards] = useState(0);
-  const [multiplier, setMultiplier] = useState(1);
   const { isDarkMode } = useTheme() || { isDarkMode: false };
   const styles = createThemedStyles(isDarkMode);
   const [stakedBalance, updateStakedBalance] = useState(0);
-  const [rewardAmount, setRewardAmount] = useState(0);
 
   useEffect(() => {
     if (publicKey) {
       fetchAndUpdateBalance(publicKey, updateStakedBalance);
     }
   }, [publicKey, updateStakedBalance]);
-
-  // useEffect(() => {
-  //   if (stakedBalance > 0) {
-  //     const totalWorkoutMinutes = workoutData.reduce((acc, workout) => acc + workout.duration, 0);
-  //     const baseRewards = stakedBalance * 0.01;
-  //     const workoutMultiplier = 1 + (totalWorkoutMinutes / 60) * 0.1;
-  //     setMultiplier(workoutMultiplier);
-  //     setRewards(baseRewards * workoutMultiplier);
-  //   } else {
-  //     setRewards(0);
-  //     setMultiplier(1);
-  //   }
-  // }, [workoutData, stakedBalance]);
 
   const renderContent = () => {
     if (!publicKey) {
@@ -61,7 +46,6 @@ const Rewards = () => {
           
           <Text style={styles.cardTitle}>Total Rewards</Text>
           <Text style={styles.rewardAmount}>{rewards.toFixed(4)} $LOCKIN</Text>
-          <Text style={styles.multiplierText}>Workout Multiplier: x{multiplier.toFixed(2)}</Text>
           <Image 
             source={require('@/assets/images/react-logo.png')} 
             style={styles.stakeImage}
@@ -81,7 +65,7 @@ const Rewards = () => {
 
         <TouchableOpacity 
           style={styles.rewardsButton} 
-          onPress={() => handleClaimRewards(rewards, setRewards, setRewardAmount)}
+          onPress={() => handleClaimRewards(rewards, setRewards)}
           disabled={rewards <= 0}
         >
           <Text style={styles.buttonText}>Claim Rewards</Text>

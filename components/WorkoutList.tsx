@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
-import WorkoutTimer from './WorkoutTimer'
-import { useTabBarVisibility } from '../contexts/TabBarVisibilityContext'
-import { CompletedWorkout, TimerWorkout, Workout, WorkoutListProps } from '../types/workout'
-import { Ionicons } from '@expo/vector-icons'
-import { useUserStore } from '@/stores/UserStore'
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import WorkoutTimer from './WorkoutTimer';
+import { useTabBarVisibility } from '../contexts/TabBarVisibilityContext';
+import { CompletedWorkout, TimerWorkout, Workout, WorkoutListProps } from '../types/workout';
+import { Ionicons } from '@expo/vector-icons';
+import { useUserStore } from '@/stores/UserStore';
+import { useSQLiteContext } from 'expo-sqlite';
 
 const WorkoutList: React.FC<WorkoutListProps> = ({ workouts, onWorkoutStart, onWorkoutComplete, onEditWorkout }) => {
-    const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null)
-    const [timerVisible, setTimerVisible] = useState(false)
-    const [workoutDuration, setWorkoutDuration] = useState(0)
-    const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null)
+    const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
+    const [timerVisible, setTimerVisible] = useState(false);
+    const [workoutDuration, setWorkoutDuration] = useState(0);
+    const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
     const { setTabBarVisible } = useTabBarVisibility() || { setTabBarVisible: () => {} };
-    const { isImperial } = useUserStore();
+    const { isImperial } = useUserStore();  
+    const db = useSQLiteContext();
     const units = isImperial ? 'lbs' : 'kg';
 
     const startWorkout = (workout: Workout) => {
@@ -25,11 +27,11 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ workouts, onWorkoutStart, onW
         }, 1000);
         setTimerInterval(interval);
         onWorkoutStart(workout);
-    }
+    };
 
     const handleWorkoutComplete = () => {
-        setTabBarVisible(true)
-        setTimerVisible(false)
+        setTabBarVisible(true);
+        setTimerVisible(false);
         if (timerInterval) {
             clearInterval(timerInterval);
         }
@@ -43,10 +45,20 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ workouts, onWorkoutStart, onW
                 date: new Date().toISOString().split('T')[0],
                 duration: workoutDuration
             };
+            saveCompletedWorkout(completedWorkout);
             onWorkoutComplete(completedWorkout);
         }
         setSelectedWorkout(null);
-    }
+    };
+
+    const saveCompletedWorkout = (workout: CompletedWorkout) => {
+        db.withTransactionAsync(async () => {
+            await db.runAsync(
+                'INSERT INTO completed_workouts (name, exercises, date, duration) VALUES (?, ?, ?, ?)',
+                [workout.name, JSON.stringify(workout.exercises), workout.date, workout.duration]
+            );
+        });
+    };
 
     useEffect(() => {
         return () => {
@@ -100,8 +112,8 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ workouts, onWorkoutStart, onW
                 />
             )}
         </ScrollView>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -152,6 +164,6 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
     },
-})
+});
 
-export default WorkoutList
+export default WorkoutList;

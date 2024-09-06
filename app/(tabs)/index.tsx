@@ -1,22 +1,25 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
-import { useScrollToTop } from '@react-navigation/native'
-import WorkoutList from '../../components/WorkoutList'
-import ExerciseCounter from '../../components/ExerciseCounter'
-import WorkoutTimer from '../../components/WorkoutTimer'
-import { useTheme } from '../../contexts/ThemeContext'
-import { useTabBarVisibility } from '@/contexts/TabBarVisibilityContext'
-import { createThemedStyles } from '../../styles/theme'
-import { CompletedWorkout, Workout } from '../../types/workout'
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useScrollToTop } from '@react-navigation/native';
+import WorkoutList from '../../components/WorkoutList';
+import ExerciseCounter from '../../components/ExerciseCounter';
+import WorkoutTimer from '../../components/WorkoutTimer';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useTabBarVisibility } from '@/contexts/TabBarVisibilityContext';
+import { createThemedStyles } from '../../styles/theme';
+import { CompletedWorkout, Workout } from '../../types/workout';
 import { handleEditCustomProgram } from '@/utils/editCustomProgram';
-import { useUserStore } from '../../stores/UserStore'
+import { useUserStore } from '../../stores/UserStore';
+import { useSQLiteContext } from 'expo-sqlite';
 
 const Home = () => {
-  const { isDarkMode } = useTheme() || { isDarkMode: false }
-  const styles = createThemedStyles(isDarkMode)
-  const navigation = useNavigation()
-  const { setTabBarVisible } = useTabBarVisibility() ?? {}
+  const { isDarkMode } = useTheme() || { isDarkMode: false };
+  const styles = createThemedStyles(isDarkMode);
+  const navigation = useNavigation();
+  const { setTabBarVisible } = useTabBarVisibility() ?? {};
+  const db = useSQLiteContext();
+
   const { 
     recentActivity, 
     customPrograms, 
@@ -24,36 +27,38 @@ const Home = () => {
     lastCompletedWeights, 
     saveWorkoutHistory, 
     selectedProgram, 
-    addRecentActivity 
+    addRecentActivity,
+    loadPreferences
   } = useUserStore();
 
-  const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null)
+  const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
 
-  const scrollViewRef = React.useRef(null)
-  useScrollToTop(scrollViewRef)
+  const scrollViewRef = React.useRef(null);
+  useScrollToTop(scrollViewRef);
 
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (activeWorkout) return
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent
-    const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20
-    const isAtTop = contentOffset.y <= 0
-    setTabBarVisible?.(isAtTop || !isCloseToBottom)
-  }, [activeWorkout, setTabBarVisible])
+    if (activeWorkout) return;
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+    const isAtTop = contentOffset.y <= 0;
+    setTabBarVisible?.(isAtTop || !isCloseToBottom);
+  }, [activeWorkout, setTabBarVisible]);
 
   useEffect(() => {
-    setTabBarVisible?.(!activeWorkout)
-  }, [activeWorkout, setTabBarVisible])
+    setTabBarVisible?.(!activeWorkout);
+    loadPreferences(db);
+  }, [activeWorkout, setTabBarVisible, loadPreferences, db]);
 
   const handleWorkoutStart = useCallback((workout: Workout) => {
-    setActiveWorkout(workout)
-    setTabBarVisible?.(false)
-  }, [setTabBarVisible])
+    setActiveWorkout(workout);
+    setTabBarVisible?.(false);
+  }, [setTabBarVisible]);
 
   const handleWorkoutComplete = useCallback((completedWorkout: CompletedWorkout) => {
-    setActiveWorkout(null)
-    navigation.setOptions({ tabBarStyle: undefined })
-    const date = new Date().toISOString().split('T')[0]
-    saveWorkoutHistory(date, {
+    setActiveWorkout(null);
+    navigation.setOptions({ tabBarStyle: undefined });
+    const date = new Date().toISOString().split('T')[0];
+    saveWorkoutHistory(db, date, {
       workout: {
         name: completedWorkout.name,
         exercises: completedWorkout.exercises.map(exercise => ({
@@ -64,9 +69,9 @@ const Home = () => {
           }))
         }))
       }
-    })
-    addRecentActivity(`Completed ${completedWorkout.name} on ${date}`)
-  }, [navigation, saveWorkoutHistory, addRecentActivity])
+    });
+    addRecentActivity(db, `Completed ${completedWorkout.name} on ${date}`);
+  }, [navigation, saveWorkoutHistory, addRecentActivity, db]);
 
   const handleEditWorkout = useCallback((workout: Workout) => {
     const program = customPrograms.find(p => p.workouts.some(w => w.id === workout.id));
@@ -85,15 +90,15 @@ const Home = () => {
         })),
       }))
     ), [customPrograms, lastCompletedWeights]
-  )
+  );
 
   const getCurrentDayWorkout = useCallback(() => {
-    if (!selectedProgram) return null
-    const today = new Date().getDay()
-    return selectedProgram.workouts[today % selectedProgram.workouts.length]
-  }, [selectedProgram])
+    if (!selectedProgram) return null;
+    const today = new Date().getDay();
+    return selectedProgram.workouts[today % selectedProgram.workouts.length];
+  }, [selectedProgram]);
 
-  const currentWorkout = getCurrentDayWorkout()
+  const currentWorkout = getCurrentDayWorkout();
 
   const renderProgramSection = () => (
     <View style={styles.programSection}>
@@ -108,7 +113,7 @@ const Home = () => {
         <Text style={styles.noProgram}>No program selected</Text>
       )}
     </View>
-  )
+  );
 
   const renderTodaysWorkout = () => (
     currentWorkout && (
@@ -126,7 +131,7 @@ const Home = () => {
         </TouchableOpacity>
       </View>
     )
-  )
+  );
 
   const renderRecentActivity = () => (
     <View style={styles.dashboardSection}>
@@ -135,7 +140,7 @@ const Home = () => {
         <Text key={index} style={styles.activityItem}>{activity}</Text>
       ))}
     </View>
-  )
+  );
 
   const renderActiveWorkout = () => (
     activeWorkout && (
@@ -150,12 +155,12 @@ const Home = () => {
               name: exercise.name,
               sets: Array.isArray(exercise.sets) ? exercise.sets : []
             }))
-          }
-          handleWorkoutComplete(completedWorkout)
+          };
+          handleWorkoutComplete(completedWorkout);
         }}
       />
     )
-  )
+  );
 
   const renderWorkoutList = () => (
     !activeWorkout && customPrograms.length > 0 && (
@@ -169,7 +174,7 @@ const Home = () => {
         />
       </View>
     )
-  )
+  );
 
   return (
     <ScrollView 
@@ -184,7 +189,7 @@ const Home = () => {
       {renderWorkoutList()}
       {renderRecentActivity()}
     </ScrollView>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

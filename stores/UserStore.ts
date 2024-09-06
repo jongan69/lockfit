@@ -1,9 +1,10 @@
 import { ExerciseProgress } from '@/types/exercise';
 import { CustomProgram, Program } from '@/types/program';
-import { WorkoutData } from '@/types/workout';
+import { WorkoutData, CompletedWorkout } from '@/types/workout';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SQLiteDatabase } from 'expo-sqlite';
 
 interface UserState {
   isImperial: boolean;
@@ -12,16 +13,16 @@ interface UserState {
   recentActivity: string[];
   exerciseProgress: ExerciseProgress[];
   selectedProgram: Program | CustomProgram | null;
-  toggleUnits: () => void;
+  toggleUnits: (db: SQLiteDatabase) => void;
   setWorkoutData: (data: WorkoutData[]) => void;
   setCustomPrograms: (programs: CustomProgram[]) => void;
-  addRecentActivity: (activity: string) => void;
+  addRecentActivity: (db: SQLiteDatabase, activity: string) => void;
   clearRecentActivity: () => void;
   setExerciseProgress: (progress: ExerciseProgress[]) => void;
   updateExercisePR: (name: string, pr: number) => void;
   setSelectedProgram: (program: Program | CustomProgram | null) => void;
   lastCompletedWeights: Record<string, number>;
-  saveWorkoutHistory: (date: string, workout: any) => void;
+  saveWorkoutHistory: (db: SQLiteDatabase, date: string, workout: any) => void;
   workoutHistory: {
     [date: string]: {
       workout: {
@@ -38,24 +39,39 @@ interface UserState {
     };
   };
   saveCustomPrograms: (programs: CustomProgram[]) => void;
+  loadPreferences: (db: SQLiteDatabase) => void;
 }
+
+const savePreference = async (db: SQLiteDatabase, key: string, value: string) => {
+  await db.runAsync('INSERT OR REPLACE INTO preferences (key, value) VALUES (?, ?)', [key, value]);
+};
+
+const getPreference = async (db: SQLiteDatabase, key: string): Promise<string | null> => {
+  const result = await db.getFirstAsync<{ value: string }>('SELECT value FROM preferences WHERE key = ?', [key]);
+  return result?.value ?? null;
+};
 
 export const useUserStore = create(
   persist<UserState>(
-    (set) => ({
+    (set, get) => ({
       isImperial: false,
       workoutData: [],
       customPrograms: [],
       recentActivity: [],
       exerciseProgress: [],
       selectedProgram: null,
-      toggleUnits: () => set((state) => ({ isImperial: !state.isImperial })),
+      toggleUnits: async (db: SQLiteDatabase) => {
+        const newIsImperial = !get().isImperial;
+        set({ isImperial: newIsImperial });
+        await savePreference(db, 'isImperial', newIsImperial.toString());
+      },
       setWorkoutData: (data) => set({ workoutData: data }),
       setCustomPrograms: (programs) => set({ customPrograms: programs }),
-      addRecentActivity: (activity) => set((state) => {
-        const newActivity = [activity, ...state.recentActivity.slice(0, 4)];
-        return { recentActivity: newActivity };
-      }),
+      addRecentActivity: async (db: SQLiteDatabase, activity: string) => {
+        const newActivity = [activity, ...get().recentActivity.slice(0, 4)];
+        set({ recentActivity: newActivity });
+        await savePreference(db, 'recentActivity', JSON.stringify(newActivity));
+      },
       clearRecentActivity: () => set({ recentActivity: [] }),
       setExerciseProgress: (progress) => set({ exerciseProgress: progress }),
       updateExercisePR: (name, pr) => set((state) => ({
@@ -67,11 +83,23 @@ export const useUserStore = create(
       })),
       setSelectedProgram: (program) => set({ selectedProgram: program }),
       lastCompletedWeights: {},
-      saveWorkoutHistory: (date, workout) => set((state) => ({
-        workoutHistory: { ...state.workoutHistory, [date]: workout }
-      })),
+      saveWorkoutHistory: async (db: SQLiteDatabase, date, workout) => {
+        const newHistory = { ...get().workoutHistory, [date]: workout };
+        set({ workoutHistory: newHistory });
+        await savePreference(db, 'workoutHistory', JSON.stringify(newHistory));
+      },
       workoutHistory: {},
       saveCustomPrograms: (programs) => set({ customPrograms: programs }),
+      loadPreferences: async (db: SQLiteDatabase) => {
+        const isImperial = await getPreference(db, 'isImperial');
+        const recentActivity = await getPreference(db, 'recentActivity');
+        const workoutHistory = await getPreference(db, 'workoutHistory');
+        set({
+          isImperial: isImperial === 'true',
+          recentActivity: recentActivity ? JSON.parse(recentActivity) : [],
+          workoutHistory: workoutHistory ? JSON.parse(workoutHistory) : {},
+        });
+      }
     }),
     {
       name: 'user-storage',
