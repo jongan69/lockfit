@@ -53,6 +53,94 @@ Lockfit is a comprehensive workout app built with Expo, featuring Solana blockch
    solana program deploy ./target/deploy/lockfitstaking.so
    ```
 
+## Data Flow and State Management
+
+### Overview
+
+Lockfit uses Zustand for state management and SQLite for persistent storage. The combination of these technologies allows for efficient state management and data persistence across app sessions.
+
+### State Management with Zustand
+
+Zustand is used to manage the application's state, including user preferences, workout data, custom programs, and recent activities. The state is defined in the `UserStore` and includes functions to update and retrieve state.
+
+#### Key State Variables
+
+- `isImperial`: Boolean indicating whether the user prefers imperial units.
+- `workoutData`: Array of workout data.
+- `customPrograms`: Array of custom workout programs.
+- `recentActivity`: Array of recent user activities.
+- `exerciseProgress`: Array of exercise progress data.
+- `selectedProgram`: The currently selected workout program.
+- `lastCompletedWeights`: Record of the last completed weights for exercises.
+- `workoutHistory`: Record of the user's workout history.
+
+#### Key Functions
+
+- `toggleUnits`: Toggles between imperial and metric units.
+- `setWorkoutData`: Sets the workout data.
+- `setCustomPrograms`: Sets the custom workout programs.
+- `addRecentActivity`: Adds a recent activity.
+- `clearRecentActivity`: Clears the recent activities.
+- `setExerciseProgress`: Sets the exercise progress data.
+- `updateExercisePR`: Updates the personal record for an exercise.
+- `setSelectedProgram`: Sets the selected workout program.
+- `saveWorkoutHistory`: Saves the workout history.
+- `loadPreferences`: Loads user preferences from SQLite.
+
+### Persistent Storage with SQLite
+
+SQLite is used to persist user data across app sessions. The database is initialized and managed using the `expo-sqlite` library. Key user preferences and workout data are stored in the SQLite database.
+
+#### Database Initialization
+
+The database is initialized with the following tables:
+
+- `preferences`: Stores user preferences.
+- `workouts`: Stores workout data.
+- `exercises`: Stores exercise data.
+- `sets`: Stores set data for exercises.
+
+#### Key Database Operations
+
+- `savePreference`: Saves a user preference to the database.
+- `getPreference`: Retrieves a user preference from the database.
+- `saveWorkoutHistory`: Saves the workout history to the database.
+- `loadPreferences`: Loads user preferences from the database.
+
+### Data Flow
+
+1. **Initialization**: When the app starts, the SQLite database is initialized, and user preferences are loaded using the `loadPreferences` function.
+2. **State Management**: The Zustand store (`UserStore`) manages the state of the application. State updates are performed using the functions defined in the store.
+3. **User Actions**: User actions, such as starting a workout or updating preferences, trigger state updates and database operations to ensure data persistence.
+4. **Rendering**: The app's components, such as `Home` and `WorkoutList`, use the state from the `UserStore` to render the UI and handle user interactions.
+
+### Example: Starting a Workout
+
+1. The user selects a workout to start.
+2. The `handleWorkoutStart` function in the `Home` component is called, which updates the state to set the active workout and hides the tab bar.
+3. The workout timer starts, and the workout duration is tracked.
+4. When the workout is completed, the `handleWorkoutComplete` function is called, which updates the state, saves the workout history to the database, and adds a recent activity.
+
+## Areas of Improvement and Features Needed
+
+### Areas of Improvement
+
+1. **Error Handling**: Improve error handling throughout the app, especially for database operations and network requests.
+2. **Performance Optimization**: Optimize the performance of the app, particularly in areas with heavy data processing or rendering.
+3. **Code Quality**: Refactor and clean up the codebase to improve readability and maintainability.
+4. **Testing**: Increase test coverage, including unit tests, integration tests, and end-to-end tests.
+
+### Features Needed
+
+1. **User Authentication**: Complete the implementation of secure user authentication using Phantom wallet.
+2. **Workout Tracking Interface**: Design and implement an intuitive UI for logging workouts, including real-time data sync with the Solana blockchain.
+3. **Rewards Distribution System**: Develop a fair and motivating reward mechanism and integrate it with the Solana program for automatic distribution.
+4. **Social Features**: Implement workout sharing functionality and develop a challenge system for user engagement.
+5. **Analytics Dashboard**: Create comprehensive performance tracking tools and visualize user progress and token earnings.
+6. **Notifications**: Implement push notifications to remind users of their workouts and notify them of rewards.
+7. **Multi-language Support**: Add support for multiple languages to make the app accessible to a broader audience.
+8. **Dark Mode**: Ensure that all components and screens support dark mode for a better user experience in low-light conditions.
+
 ## Current Development Focus and Roadmap
 
 1. User Authentication (In Progress)
